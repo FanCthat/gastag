@@ -1,0 +1,183 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model SuperAdmin {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+}
+
+model Vendor {
+  id              String   @id @default(cuid())
+  name            String
+  contactName     String
+  contactEmail    String   @unique
+  password        String
+  logoUrl         String?
+  region          String?
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  qrCodes         QRCode[]
+  clients         Client[]
+  orders          Order[]
+  escalationFlags EscalationFlag[]
+}
+
+model QRCode {
+  id           String    @id @default(cuid())
+  vendorId     String
+  state        String    @default("unregistered") // unregistered | registered
+  createdAt    DateTime  @default(now())
+  registeredAt DateTime?
+  vendor       Vendor    @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  client       Client?
+
+  @@index([vendorId])
+  @@index([state])
+}
+
+model Client {
+  id                     String   @id @default(cuid())
+  qrCodeId               String   @unique
+  vendorId               String
+  name                   String
+  email                  String
+  deliveryAddress        String
+  notificationPreference String   @default("both") // email | push | both
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+  qrCode                 QRCode   @relation(fields: [qrCodeId], references: [id])
+  vendor                 Vendor   @relation(fields: [vendorId], references: [id])
+  appliances             Appliance[]
+  orders                 Order[]
+  notifications          Notification[]
+  pushSubscriptions      PushSubscription[]
+
+  @@index([vendorId])
+  @@index([email])
+}
+
+model Appliance {
+  id                            String   @id @default(cuid())
+  clientId                      String
+  applianceType                 String   // stove | geyser | braai | patio_heater | other
+  cylinderSizeKg                Float
+  clientEstimatedDurationMonths Float?
+  isActive                      Boolean  @default(true)
+  createdAt                     DateTime @default(now())
+  client                        Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  cylinderCycles                CylinderCycle[]
+  notifications                 Notification[]
+  escalationFlags               EscalationFlag[]
+  orderItems                    OrderItem[]
+
+  @@index([clientId])
+}
+
+model CylinderCycle {
+  id                   String    @id @default(cuid())
+  applianceId          String
+  cycleNumber          Int
+  baselineUsed         String    // client_estimate | industry_average
+  predictedEmptyDate   DateTime
+  actualDeliveryDate   DateTime?
+  actualDurationMonths Float?
+  status               String    @default("active") // active | ordered | delivered
+  createdAt            DateTime  @default(now())
+  appliance            Appliance @relation(fields: [applianceId], references: [id], onDelete: Cascade)
+  orderItems           OrderItem[]
+
+  @@index([applianceId])
+  @@index([status])
+}
+
+model Order {
+  id                      String    @id @default(cuid())
+  clientId                String
+  vendorId                String
+  deliveryAddress         String
+  addressIsPermanentChange Boolean  @default(false)
+  status                  String    @default("pending") // pending | confirmed | delivered
+  placedAt                DateTime  @default(now())
+  deliveredAt             DateTime?
+  client                  Client    @relation(fields: [clientId], references: [id])
+  vendor                  Vendor    @relation(fields: [vendorId], references: [id])
+  orderItems              OrderItem[]
+
+  @@index([vendorId])
+  @@index([clientId])
+  @@index([status])
+}
+
+model OrderItem {
+  id              String        @id @default(cuid())
+  orderId         String
+  applianceId     String
+  cylinderCycleId String
+  order           Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  appliance       Appliance     @relation(fields: [applianceId], references: [id])
+  cylinderCycle   CylinderCycle @relation(fields: [cylinderCycleId], references: [id])
+}
+
+model Notification {
+  id           String    @id @default(cuid())
+  clientId     String
+  applianceId  String?
+  type         String    // 6week | 3week | duedate | order_ack | delivery_summary | escalation
+  scheduledFor DateTime
+  sentAt       DateTime?
+  channel      String    // email | push | both
+  createdAt    DateTime  @default(now())
+  client       Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  appliance    Appliance? @relation(fields: [applianceId], references: [id])
+
+  @@index([clientId])
+  @@index([scheduledFor, sentAt])
+}
+
+model EscalationFlag {
+  id               String    @id @default(cuid())
+  applianceId      String
+  vendorId         String
+  raisedAt         DateTime  @default(now())
+  clearedAt        DateTime?
+  clearedByOrderId String?
+  appliance        Appliance @relation(fields: [applianceId], references: [id], onDelete: Cascade)
+  vendor           Vendor    @relation(fields: [vendorId], references: [id])
+
+  @@index([vendorId, clearedAt])
+}
+
+model NotificationTemplate {
+  id        String   @id @default(cuid())
+  type      String   @unique
+  subject   String?
+  bodyHtml  String
+  bodyText  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model IndustryAverage {
+  cylinderSizeKg    Float @unique
+  avgDurationMonths Float
+}
+
+model PushSubscription {
+  id           String   @id @default(cuid())
+  clientId     String
+  subscription String
+  createdAt    DateTime @default(now())
+  client       Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([clientId])
+}
