@@ -4,7 +4,7 @@ import { prisma } from "@/lib/db";
 function getResend() {
   return new Resend(process.env.RESEND_API_KEY!);
 }
-const FROM = "GasTag <noreply@gastag.co.za>";
+const FROM = "GasTag <noreply@mobwatch.co.za>";
 
 type TemplateVars = Record<string, string>;
 
