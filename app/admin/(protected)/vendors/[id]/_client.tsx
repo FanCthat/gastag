@@ -18,6 +18,7 @@ export default function VendorDetailClient({ vendor }: { vendor: Vendor }) {
   const router = useRouter();
   const [isActive, setIsActive] = useState(vendor.isActive);
   const [qrCount, setQrCount] = useState(10);
+  const [qrError, setQrError] = useState("");
   const [generating, setGenerating] = useState(false);
   const [toggling, setToggling] = useState(false);
   const [newPassword, setNewPassword] = useState("");
@@ -37,20 +38,30 @@ export default function VendorDetailClient({ vendor }: { vendor: Vendor }) {
 
   async function generateQR() {
     setGenerating(true);
-    const res = await fetch(`/api/admin/vendors/${vendor.id}/qr-codes`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ count: qrCount }),
-    });
-    if (res.ok) {
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `gastag-qr-${vendor.id}-${qrCount}.zip`;
-      a.click();
-      URL.revokeObjectURL(url);
-      router.refresh();
+    setQrError("");
+    try {
+      const res = await fetch(`/api/admin/vendors/${vendor.id}/qr-codes`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ count: qrCount }),
+      });
+      if (res.ok) {
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `gastag-qr-${vendor.id}-${qrCount}.zip`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        router.refresh();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setQrError(data.error || `Error ${res.status} — check Vercel logs.`);
+      }
+    } catch (e: any) {
+      setQrError((e as any).message || "Network error.");
     }
     setGenerating(false);
   }
@@ -130,6 +141,7 @@ export default function VendorDetailClient({ vendor }: { vendor: Vendor }) {
           </button>
           <span className="text-xs text-gray-400">PNG files, one per code</span>
         </div>
+        {qrError && <p className="text-sm text-red-600 mt-2">{qrError}</p>}
       </div>
 
       {/* Reset password */}
