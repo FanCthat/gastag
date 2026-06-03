@@ -212,7 +212,7 @@ They contact you (Karl) or Paul directly. There is no public support system yet.
   try {
     const result = await resend.emails.send({
       from: "GasTag <noreply@mobwatch.co.za>",
-      to: ["kschroder1@gmail.com", "paul@mobwatch.co.za"],
+      to: ["paul@mobwatch.co.za"],
       subject: "GasTag — Your User Manual",
       html,
     });
