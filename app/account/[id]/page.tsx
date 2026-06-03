@@ -139,6 +139,12 @@ export default async function AccountPage({ params }: { params: Promise<{ id: st
           <div className="text-xs font-medium text-gray-500 mb-1">Delivery address</div>
           <div className="text-sm text-gray-700">{client.deliveryAddress}</div>
         </div>
+
+        {/* Support */}
+        <div className="text-center text-xs text-gray-400 pb-4">
+          Need help? Call or WhatsApp{" "}
+          <a href="tel:+27824993552" className="text-orange-500 font-medium">+27 82 499 3552</a>
+        </div>
       </div>
     </div>
   );

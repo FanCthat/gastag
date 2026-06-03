@@ -108,7 +108,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
           <ul>${cylinderLines}</ul>
           <p>We'll send you reminders well before each cylinder runs out, so you're never caught without gas.</p>
           <p><a href="${accountUrl}" style="background:#f97316;color:white;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:600;display:inline-block">View my account →</a></p>
-          <p>The GasTag Team</p>
+          <p style="color:#9ca3af;font-size:12px;margin-top:24px">Need help? Call or WhatsApp <a href="tel:+27824993552">+27 82 499 3552</a></p>
         `,
       });
     } catch (e) {

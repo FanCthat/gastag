@@ -65,13 +65,13 @@ export async function POST(req: NextRequest) {
         <p>When you're ready to order, just scan your QR sticker or tap the button below:</p>
         <p><a href="${reorderUrl}" style="background:#f97316;color:white;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:600;display:inline-block">Order gas →</a></p>
         <p>You can view your account anytime here: <a href="${accountUrl}">${accountUrl}</a></p>
-        <p>The GasTag Team</p>
+        <p style="color:#9ca3af;font-size:12px;margin-top:24px">Need help? Call or WhatsApp <a href="tel:+27824993552">+27 82 499 3552</a></p>
       ` : `
         <p>Hi ${client.name.split(" ")[0]},</p>
         <p>Your <strong>${cylinderSizeKg}kg ${applianceLabel}</strong> has been added to your GasTag account.</p>
         <p>Predicted empty date: <strong>${formatDate(predictedEmptyDate)}</strong>. We'll remind you well in advance.</p>
         <p><a href="${accountUrl}" style="background:#f97316;color:white;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:600;display:inline-block">View my account →</a></p>
-        <p>The GasTag Team</p>
+        <p style="color:#9ca3af;font-size:12px;margin-top:24px">Need help? Call or WhatsApp <a href="tel:+27824993552">+27 82 499 3552</a></p>
       `,
     });
   } catch (e) {
