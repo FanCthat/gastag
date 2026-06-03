@@ -91,15 +91,23 @@ export default async function AccountPage({ params }: { params: Promise<{ id: st
           </div>
         )}
 
-        {/* Order button */}
-        {hasActiveAppliances && (
+        {/* Action buttons */}
+        <div className="flex gap-3">
+          {hasActiveAppliances && (
+            <Link
+              href={`/reorder/${clientId}`}
+              className="flex-1 bg-orange-500 hover:bg-orange-600 text-white text-center font-semibold py-3 rounded-xl transition-colors"
+            >
+              Order gas now
+            </Link>
+          )}
           <Link
-            href={`/reorder/${clientId}`}
-            className="block w-full bg-orange-500 hover:bg-orange-600 text-white text-center font-semibold py-3 rounded-xl transition-colors"
+            href={`/account/${clientId}/add-appliance`}
+            className="flex-1 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-center font-semibold py-3 rounded-xl transition-colors text-sm"
           >
-            Order gas now
+            + Add appliance
           </Link>
-        )}
+        </div>
 
         {/* Recent orders */}
         {client.orders.length > 0 && (
