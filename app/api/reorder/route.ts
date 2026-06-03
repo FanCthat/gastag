@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { Resend } from "resend";
+
+function getResend() { return new Resend(process.env.RESEND_API_KEY!); }
+const FROM = "GasTag <noreply@mobwatch.co.za>";
 
 export async function POST(req: NextRequest) {
   const { clientId, applianceIds, deliveryAddress, addressIsPermanentChange } = await req.json();
@@ -11,6 +15,7 @@ export async function POST(req: NextRequest) {
   const client = await prisma.client.findUnique({
     where: { id: clientId },
     include: {
+      vendor: { select: { name: true, contactEmail: true } },
       appliances: {
         where: { id: { in: applianceIds }, isActive: true },
         include: {
@@ -22,7 +27,6 @@ export async function POST(req: NextRequest) {
 
   if (!client) return NextResponse.json({ error: "Client not found." }, { status: 404 });
 
-  // Collect active cycles for selected appliances
   const orderItems = client.appliances
     .filter(a => a.cylinderCycles.length > 0)
     .map(a => ({
@@ -42,25 +46,45 @@ export async function POST(req: NextRequest) {
         deliveryAddress,
         addressIsPermanentChange: !!addressIsPermanentChange,
         status: "pending",
-        orderItems: {
-          create: orderItems,
-        },
+        orderItems: { create: orderItems },
       },
     });
 
-    // Mark cycles as ordered
     await tx.cylinderCycle.updateMany({
       where: { id: { in: orderItems.map(i => i.cylinderCycleId) } },
       data: { status: "ordered" },
     });
 
-    // Update default address if requested
     if (addressIsPermanentChange) {
       await tx.client.update({ where: { id: clientId }, data: { deliveryAddress } });
     }
 
     return order;
   });
+
+  // Email the vendor about the new order
+  const applianceLines = client.appliances
+    .map(a => `• ${a.cylinderSizeKg}kg — ${a.applianceType}`)
+    .join("<br/>");
+
+  const dashboardUrl = `${process.env.APP_BASE_URL}/vendor/dashboard`;
+
+  try {
+    await getResend().emails.send({
+      from: FROM,
+      to: client.vendor.contactEmail,
+      subject: `New gas order from ${client.name}`,
+      html: `
+        <p>Hi ${client.vendor.name},</p>
+        <p><strong>${client.name}</strong> has placed a gas order.</p>
+        <p><strong>Cylinders:</strong><br/>${applianceLines}</p>
+        <p><strong>Deliver to:</strong><br/>${deliveryAddress}</p>
+        <p><a href="${dashboardUrl}" style="background:#f97316;color:white;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:600;display:inline-block;margin-top:8px">View order in portal →</a></p>
+      `,
+    });
+  } catch (e) {
+    console.error("Vendor order email failed:", e);
+  }
 
   return NextResponse.json({ ok: true }, { status: 201 });
 }

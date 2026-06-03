@@ -53,7 +53,13 @@ export default function ReorderForm({ client }: { client: Client }) {
       <div className="bg-white rounded-2xl border border-gray-200 p-8 text-center">
         <div className="text-4xl mb-4">✓</div>
         <h2 className="text-xl font-bold text-gray-900 mb-2">Order received!</h2>
-        <p className="text-sm text-gray-500">Your supplier will be in touch to confirm delivery.</p>
+        <p className="text-sm text-gray-500 mb-6">Your supplier will be in touch to confirm delivery.</p>
+        <a
+          href={`/account/${client.id}`}
+          className="inline-block bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-6 py-2.5 rounded-lg transition-colors"
+        >
+          View my account →
+        </a>
       </div>
     );
   }
