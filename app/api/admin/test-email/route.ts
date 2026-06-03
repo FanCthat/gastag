@@ -1,16 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth-options";
 import { Resend } from "resend";
 
 export async function GET(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-  if ((session?.user as any)?.role !== "super_admin") {
+  const secret = req.nextUrl.searchParams.get("secret");
+  if (secret !== process.env.CRON_SECRET) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   if (!process.env.RESEND_API_KEY) {
-    return NextResponse.json({ error: "RESEND_API_KEY not set" }, { status: 500 });
+    return NextResponse.json({ error: "RESEND_API_KEY not set in Vercel env vars" }, { status: 500 });
   }
 
   try {
