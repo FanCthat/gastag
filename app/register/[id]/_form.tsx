@@ -156,7 +156,7 @@ export default function RegisterForm({
               ))}
             </select>
           </Field>
-          <Field label="How long does a cylinder usually last for you? (months)" optional>
+          <Field label="How many months does a full cylinder last you?" optional>
             <input
               type="number"
               min={0.5}
@@ -169,9 +169,11 @@ export default function RegisterForm({
             {durationWarning && (
               <p className="text-xs text-amber-600 mt-1">{durationWarning}</p>
             )}
-            {!estimatedMonths && (
-              <p className="text-xs text-gray-400 mt-1">Leave blank to use the industry average.</p>
-            )}
+            <p className="text-xs text-gray-400 mt-1">
+              {estimatedMonths
+                ? `${estimatedMonths} month${parseFloat(estimatedMonths) !== 1 ? "s" : ""} — we'll remind you before then.`
+                : "Enter a number of months (e.g. 3 = three months, 1.5 = six weeks). Leave blank to use the industry average."}
+            </p>
           </Field>
           {error && <p className="text-sm text-red-600">{error}</p>}
           <button type="submit" disabled={loading} className={btnCls}>

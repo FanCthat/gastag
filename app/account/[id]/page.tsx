@@ -65,22 +65,27 @@ export default async function AccountPage({ params }: { params: Promise<{ id: st
               const cycle = appliance.cylinderCycles[0];
               const days = cycle ? daysUntil(cycle.predictedEmptyDate) : null;
               const badge = days !== null ? statusBadge(days) : null;
+              const applianceLabel = appliance.applianceType.replace(/_/g, " ");
 
               return (
                 <div key={appliance.id} className="bg-white rounded-xl border border-gray-200 p-5">
-                  <div className="flex items-start justify-between">
-                    <div>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1">
                       <div className="font-semibold text-gray-900 capitalize">
-                        {appliance.applianceType.replace("_", " ")} — {appliance.cylinderSizeKg}kg
+                        {applianceLabel} ({appliance.cylinderSizeKg}kg cylinder)
                       </div>
-                      {cycle && (
-                        <div className="text-sm text-gray-500 mt-0.5">
-                          Predicted empty: {formatDate(cycle.predictedEmptyDate)}
+                      {cycle ? (
+                        <div className="text-sm text-gray-500 mt-1">
+                          {days !== null && days < 0
+                            ? `This cylinder was predicted empty on ${formatDate(cycle.predictedEmptyDate)}`
+                            : `Predicted empty: ${formatDate(cycle.predictedEmptyDate)}`}
                         </div>
+                      ) : (
+                        <div className="text-sm text-gray-400 mt-1">Cycle not yet started</div>
                       )}
                     </div>
                     {badge && (
-                      <span className={`text-xs font-semibold px-2 py-1 rounded-full ${badge.cls}`}>
+                      <span className={`shrink-0 text-xs font-semibold px-2 py-1 rounded-full ${badge.cls}`}>
                         {badge.label}
                       </span>
                     )}

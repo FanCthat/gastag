@@ -91,7 +91,7 @@ export default function AddApplianceForm({ clientId }: { clientId: string }) {
       </div>
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
-          How long does a cylinder usually last? (months) <span className="text-gray-400">(optional)</span>
+          How many months does a full cylinder last you? <span className="text-gray-400">(optional)</span>
         </label>
         <input
           type="number"
@@ -103,7 +103,11 @@ export default function AddApplianceForm({ clientId }: { clientId: string }) {
           className={cls}
         />
         {durationWarning && <p className="text-xs text-amber-600 mt-1">{durationWarning}</p>}
-        {!estimatedMonths && <p className="text-xs text-gray-400 mt-1">Leave blank to use the industry average.</p>}
+        <p className="text-xs text-gray-400 mt-1">
+          {estimatedMonths
+            ? `${estimatedMonths} month${parseFloat(estimatedMonths) !== 1 ? "s" : ""} — we'll remind you before then.`
+            : "Enter a number of months (e.g. 3 = three months, 1.5 = six weeks). Leave blank to use the industry average."}
+        </p>
       </div>
       {error && <p className="text-sm text-red-600">{error}</p>}
       <button type="submit" disabled={loading} className="w-full bg-orange-500 hover:bg-orange-600 text-white rounded-lg py-2.5 text-sm font-semibold disabled:opacity-50 transition-colors">

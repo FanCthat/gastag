@@ -33,9 +33,11 @@ export function predictNextCycle(
   deliveryDate: Date,
   completedCycles: { actualDurationMonths: number | null }[]
 ): Date {
+  // Exclude cycles shorter than 15 days — these are almost certainly test deliveries
+  // or same-day confirmations and would corrupt the rolling average.
   const durations = completedCycles
     .map(c => c.actualDurationMonths)
-    .filter((d): d is number => d !== null);
+    .filter((d): d is number => d !== null && d >= 0.5);
   if (durations.length === 0) return addMonths(deliveryDate, 3);
   const rollingAvg = durations.reduce((a, b) => a + b, 0) / durations.length;
   return addMonths(deliveryDate, rollingAvg);

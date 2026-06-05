@@ -21,16 +21,28 @@ function formatDate(d: Date) {
 export default function PendingOrders({ orders, vendorId }: { orders: Order[]; vendorId: string }) {
   const router = useRouter();
   const [confirming, setConfirming] = useState<string | null>(null);
+  const [confirmError, setConfirmError] = useState<string | null>(null);
 
   async function confirmDelivery(orderId: string) {
     setConfirming(orderId);
-    await fetch(`/api/vendor/orders/${orderId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status: "delivered" }),
-    });
-    setConfirming(null);
-    router.refresh();
+    setConfirmError(null);
+    try {
+      const res = await fetch(`/api/vendor/orders/${orderId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "delivered" }),
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        setConfirmError(d.error || "Confirmation failed — please try again.");
+      } else {
+        router.refresh();
+      }
+    } catch {
+      setConfirmError("Network error — please check your connection and try again.");
+    } finally {
+      setConfirming(null);
+    }
   }
 
   if (orders.length === 0) {
@@ -46,6 +58,11 @@ export default function PendingOrders({ orders, vendorId }: { orders: Order[]; v
       <h2 className="text-base font-semibold text-gray-800">
         {orders.length} pending order{orders.length !== 1 ? "s" : ""}
       </h2>
+      {confirmError && (
+        <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">
+          {confirmError}
+        </div>
+      )}
       {orders.map(order => (
         <div key={order.id} className="bg-white rounded-xl border border-gray-200 p-5">
           <div className="flex items-start justify-between gap-4">
