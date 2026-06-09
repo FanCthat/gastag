@@ -165,6 +165,36 @@ export async function GET(req: NextRequest) {
   <span class="check">✓ "No pending orders" banner is shown (all caught up)</span>
 </div>
 
+<!-- SCENARIO 7 -->
+<div class="scenario">
+  <h3><span class="num">7</span> Test all four reminder emails <span class="tag paul">Admin</span></h3>
+  <p style="font-size:13px;color:#555;margin:0 0 10px;">
+    Normally reminders fire at 6 weeks, 3 weeks, on the due date, and 21 days overdue — impossible to wait for in a test session.
+    This scenario fires all four immediately so you can check the email content.
+  </p>
+
+  <div class="step"><span class="num">→</span> Look at the URL of your client account page — it ends with a long ID, e.g.<br/>
+    &nbsp;&nbsp;&nbsp;<span class="url">${BASE}/account/<b>clxxxxxxxxxxxxx</b></span><br/>
+    &nbsp;&nbsp;&nbsp;Copy that ID.
+  </div>
+  <div class="step"><span class="num">→</span> In your browser, visit this URL (replace YOUR_CLIENT_ID):<br/>
+    &nbsp;&nbsp;&nbsp;<span class="url">${BASE}/api/admin/test-notifications?secret=gastag-cron-secret&clientId=YOUR_CLIENT_ID</span>
+  </div>
+  <div class="step"><span class="num">→</span> You should see a JSON response saying <b>ok: true</b> and <b>notificationsCreated: 8</b> (4 per appliance)</div>
+  <div class="step"><span class="num">→</span> Immediately visit this URL to fire the cron:<br/>
+    &nbsp;&nbsp;&nbsp;<span class="url">${BASE}/api/cron/notify?secret=gastag-cron-secret</span>
+  </div>
+  <div class="step"><span class="num">→</span> You should see <b>sent: 8</b> in the response</div>
+  <br/>
+  <span class="check">✓ You receive 8 reminder emails — 4 per cylinder (6-week warning, 3-week warning, due date, overdue escalation)</span><br/>
+  <span class="check">✓ Each email references the correct appliance and predicted empty date</span><br/>
+  <span class="check">✓ Paul also receives the two escalation alert emails (one per cylinder)</span>
+  <div class="note" style="margin-top:10px;">
+    <strong>Alternatively, use the email address</strong> instead of the client ID:<br/>
+    <span class="url">${BASE}/api/admin/test-notifications?secret=gastag-cron-secret&email=YOUR_EMAIL</span>
+  </div>
+</div>
+
 <hr/>
 
 <h2>What to do if something fails</h2>
@@ -179,9 +209,8 @@ export async function GET(req: NextRequest) {
 
 <h2>What we're NOT testing today</h2>
 <ul style="font-size:13px;color:#555;">
-  <li>Automatic reminder emails (these fire at 6 weeks, 3 weeks and on the predicted empty date — we can't simulate those in a single test session)</li>
   <li>Push notifications (requires a physical Android device with the browser open)</li>
-  <li>The escalation alert (fires 21 days after predicted empty date with no delivery confirmed)</li>
+  <li>Real-world reminder timing (the actual 6-week/3-week cadence) — Scenario 7 fires them all at once to verify content, not spacing</li>
 </ul>
 
 <hr/>
