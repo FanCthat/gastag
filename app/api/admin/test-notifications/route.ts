@@ -19,12 +19,22 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  // ?list=1 — show all registered clients so you can find the right one
+  if (req.nextUrl.searchParams.get("list") === "1") {
+    const clients = await prisma.client.findMany({
+      orderBy: { createdAt: "desc" },
+      select: { id: true, name: true, email: true, createdAt: true, vendor: { select: { name: true } } },
+      take: 50,
+    });
+    return NextResponse.json({ clients });
+  }
+
   const email = req.nextUrl.searchParams.get("email");
   const clientId = req.nextUrl.searchParams.get("clientId");
 
   if (!email && !clientId) {
     return NextResponse.json(
-      { error: "Provide ?email= or ?clientId=" },
+      { error: "Provide ?email= or ?clientId=  (or ?list=1 to see all clients)" },
       { status: 400 }
     );
   }
