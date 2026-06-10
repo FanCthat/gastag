@@ -37,7 +37,7 @@ export async function sendEscalationEmail(vars: TemplateVars): Promise<void> {
   if (!tmpl) return;
 
   const html = interpolate(tmpl.bodyHtml, vars);
-  const escalationTo = process.env.ESCALATION_EMAIL || "admin@gastag.co.za";
+  const escalationTo = process.env.ESCALATION_EMAIL || "paul@mobwatch.co.za";
 
   await getResend().emails.send({
     from: FROM,
