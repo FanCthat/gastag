@@ -12,7 +12,7 @@ export const authOptions: NextAuthOptions = {
       credentials: { email: { type: "email" }, password: { type: "password" } },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
-        const admin = await prisma.superAdmin.findUnique({ where: { email: credentials.email } });
+        const admin = await prisma.superAdmin.findFirst({ where: { email: { equals: credentials.email.trim(), mode: "insensitive" } } });
         if (!admin) return null;
         const valid = await bcrypt.compare(credentials.password, admin.password);
         if (!valid) return null;
@@ -25,7 +25,7 @@ export const authOptions: NextAuthOptions = {
       credentials: { email: { type: "email" }, password: { type: "password" } },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
-        const vendor = await prisma.vendor.findUnique({ where: { contactEmail: credentials.email } });
+        const vendor = await prisma.vendor.findFirst({ where: { contactEmail: { equals: credentials.email.trim(), mode: "insensitive" } } });
         if (!vendor || !vendor.isActive) return null;
         const valid = await bcrypt.compare(credentials.password, vendor.password);
         if (!valid) return null;

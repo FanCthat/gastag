@@ -24,6 +24,7 @@ export default function VendorDetailClient({ vendor }: { vendor: Vendor }) {
   const [newPassword, setNewPassword] = useState("");
   const [savingPassword, setSavingPassword] = useState(false);
   const [passwordSaved, setPasswordSaved] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
 
   async function toggleActive() {
     setToggling(true);
@@ -148,13 +149,22 @@ export default function VendorDetailClient({ vendor }: { vendor: Vendor }) {
       <div className="bg-white rounded-xl border border-gray-200 p-5">
         <div className="font-medium text-gray-900 mb-3">Reset vendor password</div>
         <div className="flex items-center gap-3">
-          <input
-            type="password"
-            placeholder="New password"
-            value={newPassword}
-            onChange={e => setNewPassword(e.target.value)}
-            className="flex-1 max-w-xs border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
-          />
+          <div className="relative flex-1 max-w-xs">
+            <input
+              type={showNewPassword ? "text" : "password"}
+              placeholder="New password"
+              value={newPassword}
+              onChange={e => setNewPassword(e.target.value)}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 pr-14 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+            />
+            <button
+              type="button"
+              onClick={() => setShowNewPassword(s => !s)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 hover:text-gray-600"
+            >
+              {showNewPassword ? "Hide" : "Show"}
+            </button>
+          </div>
           <button
             onClick={savePassword}
             disabled={savingPassword || !newPassword.trim()}
