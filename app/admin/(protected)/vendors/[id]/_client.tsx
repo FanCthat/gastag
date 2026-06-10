@@ -155,7 +155,7 @@ export default function VendorDetailClient({ vendor }: { vendor: Vendor }) {
               placeholder="New password"
               value={newPassword}
               onChange={e => setNewPassword(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 pr-14 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 pr-14 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-orange-500"
             />
             <button
               type="button"
