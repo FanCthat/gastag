@@ -17,6 +17,7 @@ export async function GET(req: NextRequest) {
   const now = new Date();
   let sent = 0;
   let escalations = 0;
+  const log: string[] = [];
 
   // Find all unsent notifications due now or past
   const due = await prisma.notification.findMany({
@@ -29,10 +30,13 @@ export async function GET(req: NextRequest) {
     take: 200,
   });
 
+  log.push(`Found ${due.length} due notification(s)`);
+
   for (const notif of due) {
     const { client, appliance } = notif;
     if (!client || !appliance) {
       await prisma.notification.update({ where: { id: notif.id }, data: { sentAt: now } });
+      log.push(`${notif.type}: skipped — missing client or appliance`);
       continue;
     }
 
@@ -56,7 +60,6 @@ export async function GET(req: NextRequest) {
     };
 
     if (notif.type === "escalation") {
-      // Create escalation flag if none exists
       if (notif.applianceId) {
         const existing = await prisma.escalationFlag.findFirst({
           where: { applianceId: notif.applianceId, clearedAt: null },
@@ -71,18 +74,28 @@ export async function GET(req: NextRequest) {
           escalations++;
         }
       }
-      await sendEscalationEmail(vars);
-    } else {
-      // Send via email
-      if (notif.channel === "email" || notif.channel === "both") {
-        await sendNotificationEmail(notif.type, client.email, vars);
+      try {
+        await sendEscalationEmail(vars);
+        log.push(`escalation: sent to escalation address for ${client.name}`);
+      } catch (err: any) {
+        log.push(`escalation: FAILED — ${err.message}`);
       }
-      // TODO: push channel when push subscriptions are wired up
+    } else {
+      if (notif.channel === "email" || notif.channel === "both") {
+        try {
+          const ok = await sendNotificationEmail(notif.type, client.email, vars);
+          log.push(`${notif.type}: ${ok ? "sent" : "template missing"} → ${client.email}`);
+        } catch (err: any) {
+          log.push(`${notif.type}: FAILED — ${err.message}`);
+        }
+      } else {
+        log.push(`${notif.type}: skipped — channel is ${notif.channel}`);
+      }
     }
 
     await prisma.notification.update({ where: { id: notif.id }, data: { sentAt: now } });
     sent++;
   }
 
-  return NextResponse.json({ ok: true, sent, escalations });
+  return NextResponse.json({ ok: true, sent, escalations, log });
 }
