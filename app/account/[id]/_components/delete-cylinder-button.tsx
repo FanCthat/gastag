@@ -49,7 +49,7 @@ export default function DeleteCylinderButton({
   return (
     <button
       onClick={() => setConfirming(true)}
-      className="text-xs text-gray-400 hover:text-red-500 mt-2 block"
+      className="text-xs text-blue-900 hover:text-blue-700 mt-2 block"
     >
       Remove cylinder
     </button>
