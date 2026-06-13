@@ -69,8 +69,9 @@ export async function POST(req: NextRequest) {
     ? `<p>Once your cylinder is refilled, we'll track the new one and send you reminders before it runs out.</p>`
     : `<p>We'll send you reminders before your cylinder runs out so you're never caught without gas.</p>`;
 
+  let emailError: string | null = null;
   try {
-    await getResend().emails.send({
+    const result = await getResend().emails.send({
       from: FROM,
       to: client.email,
       subject: isFirst
@@ -99,9 +100,14 @@ export async function POST(req: NextRequest) {
         <p style="color:#9ca3af;font-size:12px;margin-top:24px">Need help? Call or WhatsApp <a href="tel:+27824993552">+27 82 499 3552</a></p>
       `,
     });
-  } catch (e) {
-    console.error("Welcome email failed:", e);
+    if (result.error) {
+      emailError = result.error.message;
+      console.error("Welcome email failed:", result.error);
+    }
+  } catch (e: any) {
+    emailError = e?.message ?? "unknown error";
+    console.error("Welcome email exception:", e);
   }
 
-  return NextResponse.json({ applianceId: appliance.id, cycleId: cycle.id }, { status: 201 });
+  return NextResponse.json({ applianceId: appliance.id, cycleId: cycle.id, emailSent: !emailError, emailError }, { status: 201 });
 }
