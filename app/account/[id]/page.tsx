@@ -65,14 +65,14 @@ export default async function AccountPage({ params }: { params: Promise<{ id: st
               const cycle = appliance.cylinderCycles[0];
               const days = cycle ? daysUntil(cycle.predictedEmptyDate) : null;
               const badge = days !== null ? statusBadge(days) : null;
-              const applianceLabel = appliance.applianceType.replace(/_/g, " ");
+              const applianceLabel = appliance.applianceType;
 
               return (
                 <div key={appliance.id} className="bg-white rounded-xl border border-gray-200 p-5">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1">
-                      <div className="font-semibold text-gray-900 capitalize">
-                        {applianceLabel} ({appliance.cylinderSizeKg}kg cylinder)
+                      <div className="font-semibold text-gray-900">
+                        {appliance.cylinderSizeKg}kg cylinder — {applianceLabel}
                       </div>
                       {cycle ? (
                         <div className="text-sm text-gray-500 mt-1">

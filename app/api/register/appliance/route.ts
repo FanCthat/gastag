@@ -12,7 +12,7 @@ function formatDate(d: Date) {
 }
 
 export async function POST(req: NextRequest) {
-  const { clientId, applianceType, cylinderSizeKg, clientEstimatedDurationMonths } = await req.json();
+  const { clientId, applianceType, cylinderSizeKg, clientEstimatedDurationMonths, currentRemainingMonths } = await req.json();
 
   if (!clientId || !applianceType || !cylinderSizeKg) {
     return NextResponse.json({ error: "Missing required fields." }, { status: 400 });
@@ -28,11 +28,12 @@ export async function POST(req: NextRequest) {
   const { predictedEmptyDate, baselineUsed } = await predictCycle1(
     now,
     cylinderSizeKg,
-    clientEstimatedDurationMonths ?? null
+    clientEstimatedDurationMonths ?? null,
+    currentRemainingMonths ?? null
   );
 
   const appliance = await prisma.appliance.create({
-    data: { clientId, applianceType, cylinderSizeKg },
+    data: { clientId, applianceType, cylinderSizeKg, clientEstimatedDurationMonths: clientEstimatedDurationMonths ?? null },
   });
 
   const cycle = await prisma.cylinderCycle.create({

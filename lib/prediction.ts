@@ -14,8 +14,17 @@ export function addMonths(date: Date, months: number): Date {
 export async function predictCycle1(
   registrationDate: Date,
   cylinderSizeKg: number,
-  clientEstimatedDurationMonths: number | null
+  clientEstimatedDurationMonths: number | null,
+  currentRemainingMonths: number | null = null
 ): Promise<{ predictedEmptyDate: Date; baselineUsed: string }> {
+  // Use remaining gas estimate if provided (partial cylinder at registration).
+  // Fall back to full-cylinder estimate (just filled up), then industry average.
+  if (currentRemainingMonths !== null) {
+    return {
+      predictedEmptyDate: addMonths(registrationDate, currentRemainingMonths),
+      baselineUsed: "client_remaining_estimate",
+    };
+  }
   if (clientEstimatedDurationMonths !== null) {
     return {
       predictedEmptyDate: addMonths(registrationDate, clientEstimatedDurationMonths),
