@@ -52,26 +52,50 @@ export async function POST(req: NextRequest) {
   const applianceCount = await prisma.appliance.count({ where: { clientId } });
   const isFirst = applianceCount === 1;
 
+  // Low gas = remaining months provided and cylinder runs out within 6 weeks
+  const daysRemaining = Math.ceil((predictedEmptyDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+  const isLowGas = currentRemainingMonths !== null && currentRemainingMonths !== undefined && daysRemaining <= 42;
+
+  const firstName = client.name.split(" ")[0];
+
+  const lowGasWarning = isLowGas ? `
+    <div style="background:#fff7ed;border:1px solid #fb923c;border-radius:8px;padding:12px 16px;margin:16px 0">
+      <strong style="color:#c2410c">⚠ Your cylinder is running low</strong><br>
+      <span style="color:#9a3412;font-size:14px">Based on what you told us, you have roughly ${daysRemaining} day${daysRemaining !== 1 ? "s" : ""} of gas left. We recommend ordering a refill soon.</span>
+    </div>
+  ` : "";
+
+  const reminderNote = isLowGas
+    ? `<p>Once your cylinder is refilled, we'll track the new one and send you reminders before it runs out.</p>`
+    : `<p>We'll send you reminders before your cylinder runs out so you're never caught without gas.</p>`;
+
   try {
     await getResend().emails.send({
       from: FROM,
       to: client.email,
       subject: isFirst
-        ? `Welcome to GasTag — you're all set, ${client.name.split(" ")[0]}!`
-        : `GasTag — ${applianceLabel} added to your account`,
+        ? (isLowGas
+            ? `GasTag — your cylinder is running low, ${firstName}!`
+            : `Welcome to GasTag — you're all set, ${firstName}!`)
+        : (isLowGas
+            ? `GasTag — ${applianceLabel} added (low gas alert)`
+            : `GasTag — ${applianceLabel} added to your account`),
       html: isFirst ? `
-        <p>Hi ${client.name.split(" ")[0]},</p>
+        <p>Hi ${firstName},</p>
         <p>Welcome to GasTag! Your <strong>${cylinderSizeKg}kg ${applianceLabel}</strong> cylinder has been registered with <strong>${client.vendor.name}</strong>.</p>
-        <p>Based on your usage, we predict your cylinder will need replacing around <strong>${formatDate(predictedEmptyDate)}</strong>. We'll send you reminders well in advance so you're never caught without gas.</p>
-        <p>When you're ready to order, just scan your QR sticker or tap the button below:</p>
-        <p><a href="${reorderUrl}" style="background:#f97316;color:white;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:600;display:inline-block">Order gas →</a></p>
+        ${lowGasWarning}
+        <p>Predicted empty date: <strong>${formatDate(predictedEmptyDate)}</strong>.</p>
+        ${reminderNote}
+        <p><a href="${reorderUrl}" style="background:#f97316;color:white;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:600;display:inline-block">Order gas now →</a></p>
         <p>You can view your account anytime here: <a href="${accountUrl}">${accountUrl}</a></p>
         <p style="color:#9ca3af;font-size:12px;margin-top:24px">Need help? Call or WhatsApp <a href="tel:+27824993552">+27 82 499 3552</a></p>
       ` : `
-        <p>Hi ${client.name.split(" ")[0]},</p>
+        <p>Hi ${firstName},</p>
         <p>Your <strong>${cylinderSizeKg}kg ${applianceLabel}</strong> has been added to your GasTag account.</p>
-        <p>Predicted empty date: <strong>${formatDate(predictedEmptyDate)}</strong>. We'll remind you well in advance.</p>
-        <p><a href="${accountUrl}" style="background:#f97316;color:white;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:600;display:inline-block">View my account →</a></p>
+        ${lowGasWarning}
+        <p>Predicted empty date: <strong>${formatDate(predictedEmptyDate)}</strong>.</p>
+        ${reminderNote}
+        <p><a href="${isLowGas ? reorderUrl : accountUrl}" style="background:#f97316;color:white;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:600;display:inline-block">${isLowGas ? "Order gas now →" : "View my account →"}</a></p>
         <p style="color:#9ca3af;font-size:12px;margin-top:24px">Need help? Call or WhatsApp <a href="tel:+27824993552">+27 82 499 3552</a></p>
       `,
     });
