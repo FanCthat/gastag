@@ -193,7 +193,7 @@ export default function RegisterForm({
           <Field label="How long until this cylinder runs out?" optional>
             <input
               type="number"
-              min={0.1}
+              min={0.5}
               step={0.5}
               placeholder="e.g. 1"
               value={remainingMonths}
