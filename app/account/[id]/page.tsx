@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import DeleteCylinderButton from "./_components/delete-cylinder-button";
 
 function formatDate(d: Date) {
   return new Date(d).toLocaleDateString("en-ZA", { day: "numeric", month: "long", year: "numeric" });
@@ -90,6 +91,11 @@ export default async function AccountPage({ params }: { params: Promise<{ id: st
                       </span>
                     )}
                   </div>
+                  <DeleteCylinderButton
+                    applianceId={appliance.id}
+                    clientId={clientId}
+                    label={`${appliance.cylinderSizeKg}kg — ${appliance.applianceType}`}
+                  />
                 </div>
               );
             })}
