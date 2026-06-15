@@ -65,13 +65,19 @@ export async function GET(req: NextRequest) {
           where: { applianceId: notif.applianceId, clearedAt: null },
         });
         if (!existing) {
-          await prisma.escalationFlag.create({
-            data: {
-              applianceId: notif.applianceId,
-              vendorId: (await prisma.client.findUnique({ where: { id: notif.clientId }, select: { vendorId: true } }))?.vendorId ?? "",
-            },
-          });
-          escalations++;
+          const clientRecord = await prisma.client.findUnique({ where: { id: notif.clientId }, select: { vendorId: true } });
+          if (clientRecord?.vendorId) {
+            try {
+              await prisma.escalationFlag.create({
+                data: { applianceId: notif.applianceId, vendorId: clientRecord.vendorId },
+              });
+              escalations++;
+            } catch (err: any) {
+              log.push(`escalation: flag create FAILED — ${err.message}`);
+            }
+          } else {
+            log.push(`escalation: skipped flag — no vendor found for client ${notif.clientId}`);
+          }
         }
       }
       try {

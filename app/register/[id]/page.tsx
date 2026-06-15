@@ -9,7 +9,7 @@ export default async function RegisterPage({ params }: { params: Promise<{ id: s
     include: { vendor: { select: { name: true } } },
   });
 
-  if (!qr || qr.state === "registered") notFound();
+  if (!qr || qr.state !== "unregistered") notFound();
 
   const cylinderSizes = [3, 5, 7, 9, 14, 19, 48];
 

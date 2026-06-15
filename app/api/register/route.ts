@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
   }
 
   const qr = await prisma.qRCode.findUnique({ where: { id: qrCodeId } });
-  if (!qr || qr.state === "registered") {
+  if (!qr || qr.state !== "unregistered") {
     return NextResponse.json({ error: "QR code not available." }, { status: 400 });
   }
 
@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
         email,
         phone: phone || null,
         deliveryAddress,
-        notificationPreference: notificationPreference || "email",
+        notificationPreference: notificationPreference || "both",
       },
     });
     await tx.qRCode.update({

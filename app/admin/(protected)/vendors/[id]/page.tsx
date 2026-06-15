@@ -7,7 +7,11 @@ export default async function VendorDetailPage({ params }: { params: Promise<{ i
   const { id } = await params;
   const vendor = await prisma.vendor.findUnique({
     where: { id },
-    include: { _count: { select: { clients: true, qrCodes: true, orders: true } } },
+    select: {
+      id: true, name: true, contactName: true, contactEmail: true, contactEmail2: true,
+      region: true, isActive: true, logoUrl: true, updatedAt: true, createdAt: true,
+      _count: { select: { clients: true, qrCodes: true, orders: true } },
+    },
   });
   if (!vendor) notFound();
 
