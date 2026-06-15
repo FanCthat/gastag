@@ -201,7 +201,7 @@ export default function VendorDetailClient({ vendor }: { vendor: Vendor }) {
       {/* Secondary / fallback email */}
       <div className="bg-white rounded-xl border border-gray-200 p-5">
         <div className="font-medium text-gray-900 mb-1">Secondary email (CC on orders)</div>
-        <div className="text-xs text-gray-400 mb-3">This address is CC'd on every new order notification. Leave blank if not needed.</div>
+        <div className="text-xs text-gray-400 mb-3">CC'd on every new order notification. Leave blank if not needed.</div>
         <div className="flex items-center gap-3">
           <input
             type="email"
