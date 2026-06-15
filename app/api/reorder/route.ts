@@ -68,11 +68,14 @@ export async function POST(req: NextRequest) {
     .join("<br/>");
 
   const dashboardUrl = `${process.env.APP_BASE_URL}/vendor/dashboard`;
+  const adminEmail = process.env.ADMIN_EMAIL || "paul@mobwatch.co.za";
 
+  let emailError: string | null = null;
   try {
-    await getResend().emails.send({
+    const result = await getResend().emails.send({
       from: FROM,
       to: client.vendor.contactEmail,
+      cc: adminEmail,
       subject: `New gas order from ${client.name}`,
       html: `
         <p>Hi ${client.vendor.name},</p>
@@ -82,9 +85,14 @@ export async function POST(req: NextRequest) {
         <p><a href="${dashboardUrl}" style="background:#f97316;color:white;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:600;display:inline-block;margin-top:8px">View order in portal →</a></p>
       `,
     });
-  } catch (e) {
-    console.error("Vendor order email failed:", e);
+    if (result.error) {
+      emailError = result.error.message;
+      console.error("Vendor order email failed:", result.error);
+    }
+  } catch (e: any) {
+    emailError = e?.message ?? "unknown error";
+    console.error("Vendor order email exception:", e);
   }
 
-  return NextResponse.json({ ok: true }, { status: 201 });
+  return NextResponse.json({ ok: true, emailSent: !emailError, emailError, vendorEmail: client.vendor.contactEmail }, { status: 201 });
 }
