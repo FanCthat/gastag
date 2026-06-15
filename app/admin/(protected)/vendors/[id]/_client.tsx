@@ -21,6 +21,9 @@ export default function VendorDetailClient({ vendor }: { vendor: Vendor }) {
   const [qrError, setQrError] = useState("");
   const [generating, setGenerating] = useState(false);
   const [toggling, setToggling] = useState(false);
+  const [newEmail, setNewEmail] = useState(vendor.contactEmail);
+  const [savingEmail, setSavingEmail] = useState(false);
+  const [emailSaved, setEmailSaved] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [savingPassword, setSavingPassword] = useState(false);
   const [passwordSaved, setPasswordSaved] = useState(false);
@@ -65,6 +68,19 @@ export default function VendorDetailClient({ vendor }: { vendor: Vendor }) {
       setQrError((e as any).message || "Network error.");
     }
     setGenerating(false);
+  }
+
+  async function saveEmail() {
+    if (!newEmail.trim()) return;
+    setSavingEmail(true);
+    await fetch(`/api/admin/vendors/${vendor.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ contactEmail: newEmail.trim() }),
+    });
+    setSavingEmail(false);
+    setEmailSaved(true);
+    setTimeout(() => setEmailSaved(false), 3000);
   }
 
   async function savePassword() {
@@ -143,6 +159,27 @@ export default function VendorDetailClient({ vendor }: { vendor: Vendor }) {
           <span className="text-xs text-gray-400">PNG files, one per code</span>
         </div>
         {qrError && <p className="text-sm text-red-600 mt-2">{qrError}</p>}
+      </div>
+
+      {/* Change login email */}
+      <div className="bg-white rounded-xl border border-gray-200 p-5">
+        <div className="font-medium text-gray-900 mb-3">Change login email</div>
+        <div className="flex items-center gap-3">
+          <input
+            type="email"
+            value={newEmail}
+            onChange={e => setNewEmail(e.target.value)}
+            className="flex-1 max-w-xs border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+          />
+          <button
+            onClick={saveEmail}
+            disabled={savingEmail || !newEmail.trim() || newEmail.trim() === vendor.contactEmail}
+            className="bg-gray-800 hover:bg-gray-900 text-white text-sm font-semibold px-4 py-2 rounded-lg disabled:opacity-50 transition-colors"
+          >
+            {savingEmail ? "Saving…" : "Save"}
+          </button>
+          {emailSaved && <span className="text-sm text-green-600">Saved!</span>}
+        </div>
       </div>
 
       {/* Reset password */}
