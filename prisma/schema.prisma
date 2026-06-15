@@ -51,6 +51,7 @@ model Client {
   vendorId               String
   name                   String
   email                  String
+  phone                  String?
   deliveryAddress        String
   notificationPreference String   @default("both") // email | push | both
   createdAt              DateTime @default(now())

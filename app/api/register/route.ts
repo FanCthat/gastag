@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 
 export async function POST(req: NextRequest) {
-  const { qrCodeId, name, email, deliveryAddress, notificationPreference } = await req.json();
+  const { qrCodeId, name, email, phone, deliveryAddress, notificationPreference } = await req.json();
 
   if (!qrCodeId || !name || !email || !deliveryAddress) {
     return NextResponse.json({ error: "Missing required fields." }, { status: 400 });
@@ -20,6 +20,7 @@ export async function POST(req: NextRequest) {
         vendorId: qr.vendorId,
         name,
         email,
+        phone: phone || null,
         deliveryAddress,
         notificationPreference: notificationPreference || "email",
       },

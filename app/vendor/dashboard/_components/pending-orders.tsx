@@ -8,7 +8,7 @@ type Order = {
   placedAt: Date;
   deliveryAddress: string;
   status: string;
-  client: { name: string; email: string; deliveryAddress: string };
+  client: { name: string; email: string; phone: string | null; deliveryAddress: string };
   orderItems: {
     appliance: { applianceType: string; cylinderSizeKg: number };
   }[];
@@ -69,6 +69,12 @@ export default function PendingOrders({ orders, vendorId }: { orders: Order[]; v
             <div className="flex-1">
               <div className="font-semibold text-gray-900">{order.client.name}</div>
               <div className="text-sm text-gray-500">{order.client.email}</div>
+              {order.client.phone && (
+                <a href={`https://wa.me/${order.client.phone.replace(/\D/g, "")}`} target="_blank" rel="noreferrer"
+                  className="text-sm text-green-600 hover:underline">
+                  {order.client.phone}
+                </a>
+              )}
               <div className="mt-2 text-sm text-gray-700">
                 <span className="font-medium">Deliver to:</span> {order.deliveryAddress}
               </div>

@@ -19,7 +19,7 @@ export default async function VendorDashboard({ searchParams }: { searchParams: 
       where: { vendorId, status: "pending" },
       orderBy: { placedAt: "desc" },
       include: {
-        client: { select: { name: true, email: true, deliveryAddress: true } },
+        client: { select: { name: true, email: true, phone: true, deliveryAddress: true } },
         orderItems: {
           include: {
             appliance: { select: { applianceType: true, cylinderSizeKg: true } },

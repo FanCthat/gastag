@@ -33,6 +33,7 @@ export default function RegisterForm({
   // Client details
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
   const [notifPref, setNotifPref] = useState("email");
 
@@ -55,7 +56,7 @@ export default function RegisterForm({
     const res = await fetch("/api/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ qrCodeId, name, email, deliveryAddress: address, notificationPreference: notifPref }),
+      body: JSON.stringify({ qrCodeId, name, email, phone: phone || null, deliveryAddress: address, notificationPreference: notifPref }),
     });
     setLoading(false);
     if (res.ok) {
@@ -124,6 +125,9 @@ export default function RegisterForm({
           </Field>
           <Field label="Email address" required>
             <input type="email" required value={email} onChange={e => setEmail(e.target.value)} className={inputCls} />
+          </Field>
+          <Field label="Phone / WhatsApp number" optional>
+            <input type="tel" placeholder="e.g. 082 499 3552" value={phone} onChange={e => setPhone(e.target.value)} className={inputCls} />
           </Field>
           <Field label="Delivery address" required>
             <textarea rows={2} required value={address} onChange={e => setAddress(e.target.value)} className={inputCls} />
