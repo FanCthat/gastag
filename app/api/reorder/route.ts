@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
   const client = await prisma.client.findUnique({
     where: { id: clientId },
     include: {
-      vendor: { select: { name: true, contactEmail: true } },
+      vendor: { select: { name: true, contactEmail: true, contactEmail2: true } },
       appliances: {
         where: { id: { in: applianceIds }, isActive: true },
         include: {
@@ -68,14 +68,13 @@ export async function POST(req: NextRequest) {
     .join("<br/>");
 
   const dashboardUrl = `${process.env.APP_BASE_URL}/vendor/dashboard`;
-  const adminEmail = process.env.ADMIN_EMAIL || "paul@mobwatch.co.za";
 
   let emailError: string | null = null;
   try {
     const result = await getResend().emails.send({
       from: FROM,
       to: client.vendor.contactEmail,
-      cc: adminEmail,
+      ...(client.vendor.contactEmail2 ? { cc: client.vendor.contactEmail2 } : {}),
       subject: `New gas order from ${client.name}`,
       html: `
         <p>Hi ${client.vendor.name},</p>

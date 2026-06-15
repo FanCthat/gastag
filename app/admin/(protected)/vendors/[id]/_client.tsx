@@ -8,6 +8,7 @@ type Vendor = {
   name: string;
   contactName: string;
   contactEmail: string;
+  contactEmail2: string | null;
   region: string | null;
   isActive: boolean;
   unregisteredQrCodes: number;
@@ -24,6 +25,9 @@ export default function VendorDetailClient({ vendor }: { vendor: Vendor }) {
   const [newEmail, setNewEmail] = useState(vendor.contactEmail);
   const [savingEmail, setSavingEmail] = useState(false);
   const [emailSaved, setEmailSaved] = useState(false);
+  const [newEmail2, setNewEmail2] = useState(vendor.contactEmail2 ?? "");
+  const [savingEmail2, setSavingEmail2] = useState(false);
+  const [email2Saved, setEmail2Saved] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [savingPassword, setSavingPassword] = useState(false);
   const [passwordSaved, setPasswordSaved] = useState(false);
@@ -81,6 +85,18 @@ export default function VendorDetailClient({ vendor }: { vendor: Vendor }) {
     setSavingEmail(false);
     setEmailSaved(true);
     setTimeout(() => setEmailSaved(false), 3000);
+  }
+
+  async function saveEmail2() {
+    setSavingEmail2(true);
+    await fetch(`/api/admin/vendors/${vendor.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ contactEmail2: newEmail2.trim() || null }),
+    });
+    setSavingEmail2(false);
+    setEmail2Saved(true);
+    setTimeout(() => setEmail2Saved(false), 3000);
   }
 
   async function savePassword() {
@@ -179,6 +195,29 @@ export default function VendorDetailClient({ vendor }: { vendor: Vendor }) {
             {savingEmail ? "Saving…" : "Save"}
           </button>
           {emailSaved && <span className="text-sm text-green-600">Saved!</span>}
+        </div>
+      </div>
+
+      {/* Secondary / fallback email */}
+      <div className="bg-white rounded-xl border border-gray-200 p-5">
+        <div className="font-medium text-gray-900 mb-1">Secondary email (CC on orders)</div>
+        <div className="text-xs text-gray-400 mb-3">This address is CC'd on every new order notification. Leave blank if not needed.</div>
+        <div className="flex items-center gap-3">
+          <input
+            type="email"
+            value={newEmail2}
+            onChange={e => setNewEmail2(e.target.value)}
+            placeholder="e.g. edson@gassafourways.co.za"
+            className="flex-1 max-w-xs border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+          />
+          <button
+            onClick={saveEmail2}
+            disabled={savingEmail2}
+            className="bg-gray-800 hover:bg-gray-900 text-white text-sm font-semibold px-4 py-2 rounded-lg disabled:opacity-50 transition-colors"
+          >
+            {savingEmail2 ? "Saving…" : "Save"}
+          </button>
+          {email2Saved && <span className="text-sm text-green-600">Saved!</span>}
         </div>
       </div>
 

@@ -20,6 +20,7 @@ model Vendor {
   name            String
   contactName     String
   contactEmail    String   @unique
+  contactEmail2   String?
   password        String
   logoUrl         String?
   region          String?

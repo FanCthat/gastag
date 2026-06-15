@@ -33,6 +33,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (body.name !== undefined) data.name = body.name;
   if (body.contactName !== undefined) data.contactName = body.contactName;
   if (body.contactEmail !== undefined) data.contactEmail = body.contactEmail;
+  if (body.contactEmail2 !== undefined) data.contactEmail2 = body.contactEmail2 || null;
   if (body.region !== undefined) data.region = body.region || null;
   if (body.isActive !== undefined) data.isActive = body.isActive;
   if (body.password) data.password = await bcrypt.hash(body.password, 12);
