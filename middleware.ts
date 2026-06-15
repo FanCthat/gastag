@@ -41,6 +41,8 @@ export default withAuth(
         ) {
           return true;
         }
+        // Let vendor paths through so the middleware function can redirect to /vendor/login
+        if (pathname.startsWith("/vendor/")) return true;
         return !!token;
       },
     },
