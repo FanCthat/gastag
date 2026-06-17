@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db";
 import VendorNav from "./_components/nav";
 import PendingOrders from "./_components/pending-orders";
 import ClientList from "./_components/client-list";
+import BroadcastForm from "./_components/broadcast-form";
 
 export default async function VendorDashboard({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
   const session = await getServerSession(authOptions);
@@ -14,7 +15,7 @@ export default async function VendorDashboard({ searchParams }: { searchParams: 
   const { tab = "orders" } = await searchParams;
 
   const [vendor, pendingOrders, clients] = await Promise.all([
-    prisma.vendor.findUnique({ where: { id: vendorId }, select: { name: true } }),
+    prisma.vendor.findUnique({ where: { id: vendorId }, select: { name: true, logoUrl: true } }),
     prisma.order.findMany({
       where: { vendorId, status: "pending" },
       orderBy: { placedAt: "desc" },
@@ -58,6 +59,7 @@ export default async function VendorDashboard({ searchParams }: { searchParams: 
       <div className="p-6">
         {tab === "orders" && <PendingOrders orders={pendingOrders} vendorId={vendorId} />}
         {tab === "clients" && <ClientList clients={clients} />}
+        {tab === "specials" && <BroadcastForm clientCount={clients.length} />}
       </div>
     </div>
   );

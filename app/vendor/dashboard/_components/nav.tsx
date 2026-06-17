@@ -7,6 +7,7 @@ export default function VendorNav({ activeTab, pendingCount }: { activeTab: stri
   const tabs = [
     { key: "orders", label: "Orders", badge: pendingCount },
     { key: "clients", label: "Clients" },
+    { key: "specials", label: "Specials" },
   ];
 
   return (
