@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { subject, message, imageUrl, clientIds } = await req.json();
+  const { subject, heading, message, imageUrl, clientIds } = await req.json();
   if (!subject?.trim() || !message?.trim()) {
     return NextResponse.json({ error: "Subject and message are required." }, { status: 400 });
   }
@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
 
   const html = `
     <div style="max-width:600px;margin:0 auto;font-family:Arial,sans-serif;color:#1a1a1a;">
-      <h1 style="text-align:center;color:#f97316;font-size:24px;margin-bottom:8px;">Special Offer Courtesy of ${vendor.name}</h1>
+      <h1 style="text-align:center;color:#f97316;font-size:24px;margin-bottom:8px;">${(heading ?? `Special Offer Courtesy of ${vendor.name}`).replace(/</g, "&lt;").replace(/>/g, "&gt;")}</h1>
       ${logoBlock}
       ${imageBlock}
       <div style="font-size:15px;line-height:1.7;white-space:pre-line;">${message.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</div>

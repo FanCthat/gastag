@@ -62,6 +62,7 @@ export default async function VendorDashboard({ searchParams }: { searchParams: 
         {tab === "specials" && (
           <BroadcastForm
             clients={clients.map(c => ({ id: c.id, name: c.name, email: c.email }))}
+            vendorName={vendor?.name ?? ""}
           />
         )}
       </div>

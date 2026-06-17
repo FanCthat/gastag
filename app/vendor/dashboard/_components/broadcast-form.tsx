@@ -4,11 +4,12 @@ import { useState, useRef } from "react";
 
 type Client = { id: string; name: string; email: string };
 
-export default function BroadcastForm({ clients }: { clients: Client[] }) {
+export default function BroadcastForm({ clients, vendorName }: { clients: Client[]; vendorName: string }) {
   const allIds = clients.map(c => c.id);
 
   const [selected, setSelected] = useState<Set<string>>(new Set(allIds));
   const [subject, setSubject] = useState("");
+  const [heading, setHeading] = useState(`Special Offer Courtesy of ${vendorName}`);
   const [message, setMessage] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [uploading, setUploading] = useState(false);
@@ -60,6 +61,7 @@ export default function BroadcastForm({ clients }: { clients: Client[] }) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         subject,
+        heading,
         message,
         imageUrl: imageUrl || null,
         clientIds: Array.from(selected),
@@ -73,6 +75,7 @@ export default function BroadcastForm({ clients }: { clients: Client[] }) {
       setMessage("");
       setImageUrl("");
       setSelected(new Set(allIds));
+      setHeading(`Special Offer Courtesy of ${vendorName}`);
       if (fileRef.current) fileRef.current.value = "";
     } else {
       setError(data.error || "Failed to send.");
@@ -126,6 +129,18 @@ export default function BroadcastForm({ clients }: { clients: Client[] }) {
 
       {/* Compose */}
       <form onSubmit={handleSend} className="space-y-5">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Email heading</label>
+          <input
+            type="text"
+            required
+            value={heading}
+            onChange={e => setHeading(e.target.value)}
+            className={cls}
+          />
+          <p className="text-xs text-gray-400 mt-1">This appears as the large heading at the top of the email.</p>
+        </div>
+
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Subject line</label>
           <input
