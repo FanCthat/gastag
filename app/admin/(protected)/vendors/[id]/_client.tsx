@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 
 type Vendor = {
@@ -9,6 +9,7 @@ type Vendor = {
   contactName: string;
   contactEmail: string;
   contactEmail2: string | null;
+  logoUrl: string | null;
   region: string | null;
   isActive: boolean;
   unregisteredQrCodes: number;
@@ -28,6 +29,10 @@ export default function VendorDetailClient({ vendor }: { vendor: Vendor }) {
   const [newEmail2, setNewEmail2] = useState(vendor.contactEmail2 ?? "");
   const [savingEmail2, setSavingEmail2] = useState(false);
   const [email2Saved, setEmail2Saved] = useState(false);
+  const [logoUrl, setLogoUrl] = useState(vendor.logoUrl ?? "");
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [logoSaved, setLogoSaved] = useState(false);
+  const logoFileRef = useRef<HTMLInputElement>(null);
   const [newPassword, setNewPassword] = useState("");
   const [savingPassword, setSavingPassword] = useState(false);
   const [passwordSaved, setPasswordSaved] = useState(false);
@@ -97,6 +102,27 @@ export default function VendorDetailClient({ vendor }: { vendor: Vendor }) {
     setSavingEmail2(false);
     setEmail2Saved(true);
     setTimeout(() => setEmail2Saved(false), 3000);
+  }
+
+  async function uploadLogo(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingLogo(true);
+    const fd = new FormData();
+    fd.append("file", file);
+    const res = await fetch("/api/upload/image", { method: "POST", body: fd });
+    const data = await res.json();
+    if (res.ok) {
+      setLogoUrl(data.url);
+      await fetch(`/api/admin/vendors/${vendor.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ logoUrl: data.url }),
+      });
+      setLogoSaved(true);
+      setTimeout(() => setLogoSaved(false), 3000);
+    }
+    setUploadingLogo(false);
   }
 
   async function savePassword() {
@@ -175,6 +201,29 @@ export default function VendorDetailClient({ vendor }: { vendor: Vendor }) {
           <span className="text-xs text-gray-400">PNG files, one per code</span>
         </div>
         {qrError && <p className="text-sm text-red-600 mt-2">{qrError}</p>}
+      </div>
+
+      {/* Logo */}
+      <div className="bg-white rounded-xl border border-gray-200 p-5">
+        <div className="font-medium text-gray-900 mb-3">Vendor logo</div>
+        <div className="flex items-center gap-4">
+          {logoUrl ? (
+            <img src={logoUrl} alt="Logo" className="h-14 w-auto object-contain rounded border border-gray-200 bg-gray-50 p-1" />
+          ) : (
+            <div className="h-14 w-20 rounded border border-dashed border-gray-300 bg-gray-50 flex items-center justify-center text-xs text-gray-400">No logo</div>
+          )}
+          <div>
+            <input ref={logoFileRef} type="file" accept="image/*" onChange={uploadLogo} className="hidden" />
+            <button
+              onClick={() => logoFileRef.current?.click()}
+              disabled={uploadingLogo}
+              className="bg-gray-800 hover:bg-gray-900 text-white text-sm font-semibold px-4 py-2 rounded-lg disabled:opacity-50 transition-colors"
+            >
+              {uploadingLogo ? "Uploading…" : logoUrl ? "Replace logo" : "Upload logo"}
+            </button>
+            {logoSaved && <span className="text-sm text-green-600 ml-3">Saved!</span>}
+          </div>
+        </div>
       </div>
 
       {/* Change login email */}
