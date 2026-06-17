@@ -14,9 +14,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { subject, message, imageUrl } = await req.json();
+  const { subject, message, imageUrl, clientIds } = await req.json();
   if (!subject?.trim() || !message?.trim()) {
     return NextResponse.json({ error: "Subject and message are required." }, { status: 400 });
+  }
+  if (!Array.isArray(clientIds) || clientIds.length === 0) {
+    return NextResponse.json({ error: "No recipients selected." }, { status: 400 });
   }
 
   const vendor = await prisma.vendor.findUnique({
@@ -26,7 +29,7 @@ export async function POST(req: NextRequest) {
   if (!vendor) return NextResponse.json({ error: "Vendor not found." }, { status: 404 });
 
   const clients = await prisma.client.findMany({
-    where: { vendorId },
+    where: { vendorId, id: { in: clientIds } },
     select: { email: true, name: true },
   });
 

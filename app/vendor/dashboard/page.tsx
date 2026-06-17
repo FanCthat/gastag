@@ -59,7 +59,11 @@ export default async function VendorDashboard({ searchParams }: { searchParams: 
       <div className="p-6">
         {tab === "orders" && <PendingOrders orders={pendingOrders} vendorId={vendorId} />}
         {tab === "clients" && <ClientList clients={clients} />}
-        {tab === "specials" && <BroadcastForm clientCount={clients.length} />}
+        {tab === "specials" && (
+          <BroadcastForm
+            clients={clients.map(c => ({ id: c.id, name: c.name, email: c.email }))}
+          />
+        )}
       </div>
     </div>
   );
