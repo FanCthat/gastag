@@ -9,7 +9,7 @@ export default async function VendorDetailPage({ params }: { params: Promise<{ i
     where: { id },
     select: {
       id: true, name: true, contactName: true, contactEmail: true, contactEmail2: true,
-      region: true, isActive: true, logoUrl: true, updatedAt: true, createdAt: true,
+      region: true, isActive: true, logoUrl: true, whatsapp: true, updatedAt: true, createdAt: true,
       _count: { select: { clients: true, qrCodes: true, orders: true } },
     },
   });

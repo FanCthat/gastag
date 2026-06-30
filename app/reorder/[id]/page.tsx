@@ -8,7 +8,7 @@ export default async function ReorderPage({ params }: { params: Promise<{ id: st
   const client = await prisma.client.findUnique({
     where: { id: clientId },
     include: {
-      vendor: { select: { name: true } },
+      vendor: { select: { name: true, whatsapp: true } },
       appliances: {
         where: { isActive: true },
         include: {
@@ -31,7 +31,7 @@ export default async function ReorderPage({ params }: { params: Promise<{ id: st
           <h1 className="text-2xl font-bold text-gray-900">Order gas</h1>
           <p className="text-sm text-gray-500 mt-1">Hi {client.name} — confirm your order below.</p>
         </div>
-        <ReorderForm client={client as any} />
+        <ReorderForm client={client as any} vendorWhatsapp={(client.vendor as any)?.whatsapp ?? null} />
       </div>
     </div>
   );

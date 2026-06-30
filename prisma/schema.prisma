@@ -23,6 +23,7 @@ model Vendor {
   contactEmail2   String?
   password        String
   logoUrl         String?
+  whatsapp        String?
   region          String?
   isActive        Boolean  @default(true)
   createdAt       DateTime @default(now())
