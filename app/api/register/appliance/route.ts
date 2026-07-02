@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
 
   const client = await prisma.client.findUnique({
     where: { id: clientId },
-    include: { vendor: { select: { name: true } } },
+    include: { vendor: { select: { name: true, isDemo: true } } },
   });
   if (!client) return NextResponse.json({ error: "Client not found." }, { status: 404 });
 
@@ -70,43 +70,82 @@ export async function POST(req: NextRequest) {
     : `<p>We'll send you reminders before your cylinder runs out so you're never caught without gas.</p>`;
 
   let emailError: string | null = null;
-  try {
-    const result = await getResend().emails.send({
-      from: FROM,
-      to: client.email,
-      subject: isFirst
-        ? (isLowGas
-            ? `GasTag — your cylinder is running low, ${firstName}!`
-            : `Welcome to GasTag — you're all set, ${firstName}!`)
-        : (isLowGas
-            ? `GasTag — ${applianceLabel} added (low gas alert)`
-            : `GasTag — ${applianceLabel} added to your account`),
-      html: isFirst ? `
-        <p>Hi ${firstName},</p>
-        <p>Welcome to GasTag! Your <strong>${cylinderSizeKg}kg ${applianceLabel}</strong> cylinder has been registered with <strong>${client.vendor.name}</strong>.</p>
-        ${lowGasWarning}
-        <p>Predicted empty date: <strong>${formatDate(predictedEmptyDate)}</strong>.</p>
-        ${reminderNote}
-        <p><a href="${reorderUrl}" style="background:#f97316;color:white;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:600;display:inline-block">Order gas now →</a></p>
-        <p>You can view your account anytime here: <a href="${accountUrl}">${accountUrl}</a></p>
-        <p style="color:#9ca3af;font-size:12px;margin-top:24px">Need help? Call or WhatsApp <a href="tel:+27824993552">+27 82 499 3552</a></p>
-      ` : `
-        <p>Hi ${firstName},</p>
-        <p>Your <strong>${cylinderSizeKg}kg ${applianceLabel}</strong> has been added to your GasTag account.</p>
-        ${lowGasWarning}
-        <p>Predicted empty date: <strong>${formatDate(predictedEmptyDate)}</strong>.</p>
-        ${reminderNote}
-        <p><a href="${isLowGas ? reorderUrl : accountUrl}" style="background:#f97316;color:white;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:600;display:inline-block">${isLowGas ? "Order gas now →" : "View my account →"}</a></p>
-        <p style="color:#9ca3af;font-size:12px;margin-top:24px">Need help? Call or WhatsApp <a href="tel:+27824993552">+27 82 499 3552</a></p>
-      `,
-    });
-    if (result.error) {
-      emailError = result.error.message;
-      console.error("Welcome email failed:", result.error);
+
+  if (client.vendor.isDemo) {
+    // Demo account: send the simulated 6-week warning instead of a welcome email
+    const nextDemoUrl = `${process.env.APP_BASE_URL}/demo/next/${clientId}`;
+    try {
+      const result = await getResend().emails.send({
+        from: FROM,
+        to: client.email,
+        subject: `🔬 DEMO — Your first GasTag reminder, ${firstName}`,
+        html: `
+          <div style="font-family:sans-serif;max-width:560px;margin:0 auto;">
+            <div style="background:#f97316;color:white;padding:12px 20px;font-weight:bold;font-size:13px;border-radius:8px 8px 0 0;">
+              🔬 DEMO MODE — In live operation, this email arrives 6 weeks before your cylinder is predicted empty.
+            </div>
+            <div style="background:white;padding:28px 24px;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 8px 8px;">
+              <h2 style="color:#111827;margin:0 0 12px;">Your cylinder is getting low, ${firstName}</h2>
+              <p style="color:#374151;margin:0 0 12px;">This is your early warning — your cylinder(s) are approaching empty.</p>
+              <p style="color:#374151;margin:0 0 20px;">Now is the ideal time to place your order so delivery arrives before you run out.</p>
+              <a href="${reorderUrl}" style="background:#f97316;color:white;padding:12px 28px;border-radius:8px;text-decoration:none;display:inline-block;font-weight:bold;margin:0 0 16px;">Order gas now →</a>
+              <div style="margin-top:24px;padding-top:20px;border-top:1px solid #e5e7eb;">
+                <p style="color:#6b7280;font-size:13px;margin:0 0 10px;">Tap the button below to receive your next demo reminder email:</p>
+                <a href="${nextDemoUrl}" style="background:#1e40af;color:white;padding:10px 24px;border-radius:8px;text-decoration:none;display:inline-block;font-weight:bold;">Receive next demo email →</a>
+              </div>
+            </div>
+          </div>
+        `,
+      });
+      if (result.error) emailError = result.error.message;
+      else {
+        await prisma.notification.create({
+          data: { clientId, type: "demo_6week", scheduledFor: new Date(), sentAt: new Date(), channel: "email" },
+        });
+      }
+    } catch (e: any) {
+      emailError = e?.message ?? "unknown error";
+      console.error("Demo email 1 failed:", e);
     }
-  } catch (e: any) {
-    emailError = e?.message ?? "unknown error";
-    console.error("Welcome email exception:", e);
+  } else {
+    try {
+      const result = await getResend().emails.send({
+        from: FROM,
+        to: client.email,
+        subject: isFirst
+          ? (isLowGas
+              ? `GasTag — your cylinder is running low, ${firstName}!`
+              : `Welcome to GasTag — you're all set, ${firstName}!`)
+          : (isLowGas
+              ? `GasTag — ${applianceLabel} added (low gas alert)`
+              : `GasTag — ${applianceLabel} added to your account`),
+        html: isFirst ? `
+          <p>Hi ${firstName},</p>
+          <p>Welcome to GasTag! Your <strong>${cylinderSizeKg}kg ${applianceLabel}</strong> cylinder has been registered with <strong>${client.vendor.name}</strong>.</p>
+          ${lowGasWarning}
+          <p>Predicted empty date: <strong>${formatDate(predictedEmptyDate)}</strong>.</p>
+          ${reminderNote}
+          <p><a href="${reorderUrl}" style="background:#f97316;color:white;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:600;display:inline-block">Order gas now →</a></p>
+          <p>You can view your account anytime here: <a href="${accountUrl}">${accountUrl}</a></p>
+          <p style="color:#9ca3af;font-size:12px;margin-top:24px">Need help? Call or WhatsApp <a href="tel:+27824993552">+27 82 499 3552</a></p>
+        ` : `
+          <p>Hi ${firstName},</p>
+          <p>Your <strong>${cylinderSizeKg}kg ${applianceLabel}</strong> has been added to your GasTag account.</p>
+          ${lowGasWarning}
+          <p>Predicted empty date: <strong>${formatDate(predictedEmptyDate)}</strong>.</p>
+          ${reminderNote}
+          <p><a href="${isLowGas ? reorderUrl : accountUrl}" style="background:#f97316;color:white;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:600;display:inline-block">${isLowGas ? "Order gas now →" : "View my account →"}</a></p>
+          <p style="color:#9ca3af;font-size:12px;margin-top:24px">Need help? Call or WhatsApp <a href="tel:+27824993552">+27 82 499 3552</a></p>
+        `,
+      });
+      if (result.error) {
+        emailError = result.error.message;
+        console.error("Welcome email failed:", result.error);
+      }
+    } catch (e: any) {
+      emailError = e?.message ?? "unknown error";
+      console.error("Welcome email exception:", e);
+    }
   }
 
   return NextResponse.json({ applianceId: appliance.id, cycleId: cycle.id, emailSent: !emailError, emailError }, { status: 201 });

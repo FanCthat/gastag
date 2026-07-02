@@ -179,9 +179,10 @@ export default function RegisterForm({
             </select>
           </Field>
 
-          <Field label="How long does a full cylinder usually last you?" optional>
+          <Field label="How long does a full cylinder usually last you?">
             <input
               type="number"
+              required
               min={0.5}
               step={0.5}
               placeholder="e.g. 3"
