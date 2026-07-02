@@ -105,8 +105,9 @@ export default async function DemoNextEmailPage({
             <div style="background:white;padding:28px 24px;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 8px 8px;">
               <h2 style="color:#111827;margin:0 0 12px;">Your cylinder is predicted empty today, ${client.name.split(" ")[0]}</h2>
               <p style="color:#374151;margin:0 0 12px;">Based on your usage, your cylinder should be empty around now. If you haven't ordered yet — now's the time!</p>
-              <p style="color:#374151;margin:0 0 20px;"><strong>Scan the QR code on your keyring</strong> to go straight to your order page. No app, no login needed.</p>
-              <p style="color:#6b7280;font-size:13px;margin:0;">In live operation, this is the final reminder — sent on your cylinder's predicted empty date.</p>
+              <p style="color:#374151;margin:0 0 20px;">In real life, your customer would scan the QR code on their keyring to reorder. In this demo, tap the button below to experience the order process:</p>
+              <a href="${reorderUrl}" style="background:#f97316;color:white;padding:12px 28px;border-radius:8px;text-decoration:none;display:inline-block;font-weight:bold;margin:0 0 20px;">Order gas now →</a>
+              <p style="color:#6b7280;font-size:13px;margin:0;">In live operation, this is the final customer reminder — sent on the cylinder's predicted empty date. After placing the order, check your supplier dashboard to confirm and complete the delivery.</p>
             </div>
           </div>
         `,
