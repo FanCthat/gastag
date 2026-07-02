@@ -26,7 +26,7 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
         const vendor = await prisma.vendor.findFirst({ where: { contactEmail: { equals: credentials.email.trim(), mode: "insensitive" } } });
-        if (!vendor || !vendor.isActive) return null;
+        if (!vendor || (!vendor.isActive && !vendor.isDemo)) return null;
         const valid = await bcrypt.compare(credentials.password, vendor.password);
         if (!valid) return null;
         return { id: vendor.id, email: vendor.contactEmail, role: "vendor", name: vendor.name };

@@ -13,6 +13,7 @@ type Vendor = {
   whatsapp: string | null;
   region: string | null;
   isActive: boolean;
+  isDemo: boolean;
   unregisteredQrCodes: number;
   _count: { clients: number; qrCodes: number; orders: number };
 };
@@ -20,6 +21,10 @@ type Vendor = {
 export default function VendorDetailClient({ vendor }: { vendor: Vendor }) {
   const router = useRouter();
   const [isActive, setIsActive] = useState(vendor.isActive);
+  const [isDemo, setIsDemo] = useState(vendor.isDemo);
+  const [activating, setActivating] = useState(false);
+  const [activated, setActivated] = useState(false);
+  const [activateError, setActivateError] = useState("");
   const [qrCount, setQrCount] = useState(10);
   const [qrError, setQrError] = useState("");
   const [generating, setGenerating] = useState(false);
@@ -41,6 +46,20 @@ export default function VendorDetailClient({ vendor }: { vendor: Vendor }) {
   const [savingPassword, setSavingPassword] = useState(false);
   const [passwordSaved, setPasswordSaved] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
+
+  async function activateFromDemo() {
+    setActivating(true);
+    setActivateError("");
+    const res = await fetch(`/api/admin/vendors/${vendor.id}/activate-demo`, { method: "POST" });
+    if (res.ok) {
+      setIsDemo(false);
+      setActivated(true);
+    } else {
+      const d = await res.json().catch(() => ({}));
+      setActivateError(d.error || "Activation failed.");
+    }
+    setActivating(false);
+  }
 
   async function toggleActive() {
     setToggling(true);
@@ -164,6 +183,25 @@ export default function VendorDetailClient({ vendor }: { vendor: Vendor }) {
 
   return (
     <div className="space-y-6">
+      {isDemo && (
+        <div className="bg-blue-50 rounded-xl border border-blue-200 p-5 mb-4">
+          <div className="font-bold text-blue-900 mb-1">Demo vendor — awaiting payment</div>
+          <p className="text-sm text-blue-700 mb-3">
+            This supplier signed up via the demo system. Once you have received payment, click Activate to:
+            wipe demo test data, make them live, and send their welcome email.
+          </p>
+          <button
+            onClick={activateFromDemo}
+            disabled={activating}
+            className="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-5 py-2 rounded-lg disabled:opacity-50 transition-colors"
+          >
+            {activating ? "Activating…" : "✓ Payment received — Activate vendor"}
+          </button>
+          {activateError && <p className="text-sm text-red-600 mt-2">{activateError}</p>}
+          {activated && <p className="text-sm text-green-600 mt-2">Activated! Welcome email sent.</p>}
+        </div>
+      )}
+
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {stats.map(s => (

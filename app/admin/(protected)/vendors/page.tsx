@@ -7,6 +7,7 @@ export default async function VendorsPage() {
     include: {
       _count: { select: { clients: true, qrCodes: true } },
     },
+    // isDemo is included via findMany (all fields selected by default with include)
   });
 
   return (
@@ -49,6 +50,11 @@ export default async function VendorsPage() {
                   <td className="px-4 py-3 text-right text-gray-600">{v._count.qrCodes}</td>
                   <td className="px-4 py-3 text-right text-gray-600">{v._count.clients}</td>
                   <td className="px-4 py-3">
+                    {v.isDemo && (
+                      <span className="inline-block text-xs font-medium px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 mr-1">
+                        DEMO
+                      </span>
+                    )}
                     <span
                       className={`inline-block text-xs font-medium px-2 py-0.5 rounded-full ${
                         v.isActive

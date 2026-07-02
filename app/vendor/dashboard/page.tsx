@@ -15,7 +15,7 @@ export default async function VendorDashboard({ searchParams }: { searchParams: 
   const { tab = "orders" } = await searchParams;
 
   const [vendor, pendingOrders, clients] = await Promise.all([
-    prisma.vendor.findUnique({ where: { id: vendorId }, select: { name: true, logoUrl: true } }),
+    prisma.vendor.findUnique({ where: { id: vendorId }, select: { name: true, logoUrl: true, isDemo: true } }),
     prisma.order.findMany({
       where: { vendorId, status: "pending" },
       orderBy: { placedAt: "desc" },
@@ -57,6 +57,11 @@ export default async function VendorDashboard({ searchParams }: { searchParams: 
       </header>
 
       <div className="p-6">
+        {vendor?.isDemo && (
+          <div className="mb-4 rounded-xl bg-blue-50 border border-blue-200 px-4 py-3 text-sm text-blue-800">
+            <strong>🔬 Demo mode</strong> — You are viewing a demo account. Test clients and orders placed here will be cleared when your account is activated.
+          </div>
+        )}
         {tab === "orders" && <PendingOrders orders={pendingOrders} vendorId={vendorId} />}
         {tab === "clients" && <ClientList clients={clients} />}
         {tab === "specials" && (
