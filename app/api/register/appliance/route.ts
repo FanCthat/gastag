@@ -82,15 +82,15 @@ export async function POST(req: NextRequest) {
         html: `
           <div style="font-family:sans-serif;max-width:560px;margin:0 auto;">
             <div style="background:#f97316;color:white;padding:12px 20px;font-weight:bold;font-size:13px;border-radius:8px 8px 0 0;">
-              🔬 DEMO MODE — In live operation, this email arrives 6 weeks before your cylinder is predicted empty.
+              🔬 DEMO MODE
             </div>
             <div style="background:white;padding:28px 24px;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 8px 8px;">
               <h2 style="color:#111827;margin:0 0 12px;">Your cylinder is getting low, ${firstName}</h2>
-              <p style="color:#374151;margin:0 0 12px;">This is your early warning — your cylinder(s) are approaching empty.</p>
-              <p style="color:#374151;margin:0 0 20px;">Now is the ideal time to place your order so delivery arrives before you run out.</p>
-              <a href="${reorderUrl}" style="background:#f97316;color:white;padding:12px 28px;border-radius:8px;text-decoration:none;display:inline-block;font-weight:bold;margin:0 0 16px;">Order gas now →</a>
+              <p style="color:#374151;margin:0 0 12px;">This is your early warning — your cylinder is approaching empty and now is the ideal time to arrange a refill.</p>
+              <p style="color:#374151;margin:0 0 20px;">When you're ready to reorder, simply <strong>scan the QR code on your keyring</strong> — it takes you straight to your order page. No app, no login needed.</p>
               <div style="margin-top:24px;padding-top:20px;border-top:1px solid #e5e7eb;">
-                <p style="color:#6b7280;font-size:13px;margin:0 0 10px;">Tap the button below to receive your next demo reminder email:</p>
+                <p style="color:#6b7280;font-size:13px;margin:0 0 4px;">In live operation, this reminder arrives <strong>6 weeks</strong> before your cylinder is predicted empty. The next reminder arrives <strong>3 weeks</strong> after that.</p>
+                <p style="color:#6b7280;font-size:13px;margin:0 0 12px;">In this demo, time is compressed for your convenience!</p>
                 <a href="${nextDemoUrl}" style="background:#1e40af;color:white;padding:10px 24px;border-radius:8px;text-decoration:none;display:inline-block;font-weight:bold;">Receive next demo email →</a>
               </div>
             </div>

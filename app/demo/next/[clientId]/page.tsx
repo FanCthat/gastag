@@ -58,15 +58,15 @@ export default async function DemoNextEmailPage({
         html: `
           <div style="font-family:sans-serif;max-width:560px;margin:0 auto;">
             <div style="background:#f97316;color:white;padding:12px 20px;font-weight:bold;font-size:13px;border-radius:8px 8px 0 0;">
-              🔬 DEMO MODE — In live operation, this email arrives 3 weeks before your cylinder is predicted empty.
+              🔬 DEMO MODE
             </div>
             <div style="background:white;padding:28px 24px;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 8px 8px;">
-              <h2 style="color:#111827;margin:0 0 12px;">Running low — order now to avoid running out, ${client.name}</h2>
-              <p style="color:#374151;margin:0 0 12px;">Your cylinder(s) are getting low. With 3 weeks to go, now is the best time to place your order.</p>
-              <p style="color:#374151;margin:0 0 20px;">Don't wait until you've run out — order now and we'll deliver before you need it.</p>
-              <a href="${reorderUrl}" style="background:#f97316;color:white;padding:12px 28px;border-radius:8px;text-decoration:none;display:inline-block;font-weight:bold;margin:0 0 16px;">Order gas now →</a>
+              <h2 style="color:#111827;margin:0 0 12px;">Running low — time to arrange a refill, ${client.name.split(" ")[0]}</h2>
+              <p style="color:#374151;margin:0 0 12px;">Your cylinder is getting low. Don't wait until you've run out — arrange your refill now and we'll deliver before you need it.</p>
+              <p style="color:#374151;margin:0 0 20px;">When you're ready, simply <strong>scan the QR code on your keyring</strong> — it takes you straight to your order page. No app, no login needed.</p>
               <div style="margin-top:24px;padding-top:20px;border-top:1px solid #e5e7eb;">
-                <p style="color:#6b7280;font-size:13px;margin:0 0 10px;">Tap the button below to receive your next demo reminder email:</p>
+                <p style="color:#6b7280;font-size:13px;margin:0 0 4px;">In live operation, this reminder arrives <strong>3 weeks</strong> before your cylinder is predicted empty. The final reminder arrives on the predicted empty date.</p>
+                <p style="color:#6b7280;font-size:13px;margin:0 0 12px;">In this demo, time is compressed for your convenience!</p>
                 <a href="${nextDemoUrl}" style="background:#1e40af;color:white;padding:10px 24px;border-radius:8px;text-decoration:none;display:inline-block;font-weight:bold;">Receive next demo email →</a>
               </div>
             </div>
@@ -100,13 +100,13 @@ export default async function DemoNextEmailPage({
         html: `
           <div style="font-family:sans-serif;max-width:560px;margin:0 auto;">
             <div style="background:#f97316;color:white;padding:12px 20px;font-weight:bold;font-size:13px;border-radius:8px 8px 0 0;">
-              🔬 DEMO MODE — In live operation, this email arrives on your cylinder's predicted empty date.
+              🔬 DEMO MODE
             </div>
             <div style="background:white;padding:28px 24px;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 8px 8px;">
-              <h2 style="color:#111827;margin:0 0 12px;">Your cylinder is predicted empty today, ${client.name}</h2>
-              <p style="color:#374151;margin:0 0 12px;">Based on your usage, your cylinder(s) are predicted to be empty today.</p>
-              <p style="color:#374151;margin:0 0 20px;">Order now to avoid running out of gas.</p>
-              <a href="${reorderUrl}" style="background:#f97316;color:white;padding:12px 28px;border-radius:8px;text-decoration:none;display:inline-block;font-weight:bold;margin:0 0 16px;">Order gas now →</a>
+              <h2 style="color:#111827;margin:0 0 12px;">Your cylinder is predicted empty today, ${client.name.split(" ")[0]}</h2>
+              <p style="color:#374151;margin:0 0 12px;">Based on your usage, your cylinder should be empty around now. If you haven't ordered yet — now's the time!</p>
+              <p style="color:#374151;margin:0 0 20px;"><strong>Scan the QR code on your keyring</strong> to go straight to your order page. No app, no login needed.</p>
+              <p style="color:#6b7280;font-size:13px;margin:0;">In live operation, this is the final reminder — sent on your cylinder's predicted empty date.</p>
             </div>
           </div>
         `,
