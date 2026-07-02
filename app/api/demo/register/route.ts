@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Business name, your name, and email are required." }, { status: 400 });
   }
 
-  const plainPassword = generateDemoPassword();
+  let plainPassword = generateDemoPassword();
   const hashedPassword = await bcrypt.hash(plainPassword, 12);
 
   let vendor: { id: string; name: string };
@@ -48,9 +48,24 @@ export async function POST(req: NextRequest) {
   } catch (err: any) {
     console.error("Demo vendor create error:", err);
     if (err?.code === "P2002") {
-      return NextResponse.json({ error: "An account with that email already exists." }, { status: 409 });
+      // Email already exists — if it's a demo vendor, reset their password and reuse the account
+      const existing = await prisma.vendor.findUnique({
+        where: { contactEmail: email.trim().toLowerCase() },
+        select: { id: true, isDemo: true },
+      });
+      if (!existing || !existing.isDemo) {
+        return NextResponse.json({ error: "An active supplier account already exists with that email address. Please use a different email." }, { status: 409 });
+      }
+      const newPassword = generateDemoPassword();
+      await prisma.vendor.update({
+        where: { id: existing.id },
+        data: { name: businessName.trim(), contactName: contactName.trim(), password: await bcrypt.hash(newPassword, 12) },
+      });
+      vendor = { id: existing.id, name: businessName.trim() };
+      plainPassword = newPassword;
+    } else {
+      return NextResponse.json({ error: `Database error: ${err?.message ?? err}` }, { status: 500 });
     }
-    return NextResponse.json({ error: `Database error: ${err?.message ?? err}` }, { status: 500 });
   }
 
   try {
