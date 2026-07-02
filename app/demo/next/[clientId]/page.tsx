@@ -133,16 +133,24 @@ export default async function DemoNextEmailPage({
   if (allDone) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 max-w-md text-center space-y-4">
-          <div className="text-4xl">✅</div>
-          <h1 className="text-xl font-bold text-gray-900">You've received all demo emails!</h1>
-          <p className="text-sm text-gray-500">Check your inbox to see all 3 reminder emails. Now log into your supplier dashboard to see what your customers experience.</p>
-          <Link
-            href="/vendor/login"
-            className="inline-block bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-3 rounded-xl text-sm transition-colors"
-          >
-            Log into your supplier dashboard →
-          </Link>
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 max-w-md space-y-5">
+          <div className="text-center space-y-2">
+            <div className="text-4xl">✅</div>
+            <h1 className="text-xl font-bold text-gray-900">You've received all 3 demo reminder emails!</h1>
+            <p className="text-sm text-gray-500">Check your inbox to see the full sequence your customers will receive.</p>
+          </div>
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-900 space-y-1">
+            <p className="font-semibold">One more thing — the escalation alert</p>
+            <p>If a customer still hasn't ordered 3 weeks after their predicted empty date, GasTag automatically sends <strong>you</strong> (the supplier) an alert. This one doesn't go to the customer — it's a heads-up so you can follow up personally before the relationship goes cold.</p>
+          </div>
+          <div className="text-center">
+            <Link
+              href="/vendor/login"
+              className="inline-block bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-3 rounded-xl text-sm transition-colors"
+            >
+              Log into your supplier dashboard →
+            </Link>
+          </div>
         </div>
       </div>
     );

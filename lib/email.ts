@@ -32,17 +32,16 @@ export async function sendNotificationEmail(
   }
 }
 
-export async function sendEscalationEmail(vars: TemplateVars): Promise<void> {
+export async function sendEscalationEmail(vars: TemplateVars, vendorEmail: string): Promise<void> {
   const tmpl = await prisma.notificationTemplate.findUnique({ where: { type: "escalation" } });
   if (!tmpl) return;
 
   const html = interpolate(tmpl.bodyHtml, vars);
-  const escalationTo = process.env.ESCALATION_EMAIL || "paul@mobwatch.co.za";
 
   await getResend().emails.send({
     from: FROM,
-    to: escalationTo,
-    subject: `GasTag Escalation: ${vars.clientName}`,
+    to: vendorEmail,
+    subject: `GasTag: ${vars.clientName} hasn't reordered — cylinder overdue`,
     html,
   });
 }

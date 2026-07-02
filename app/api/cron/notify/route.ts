@@ -60,13 +60,18 @@ export async function GET(req: NextRequest) {
     };
 
     if (notif.type === "escalation") {
+      let vendorEmail: string | null = null;
       if (notif.applianceId) {
         const existing = await prisma.escalationFlag.findFirst({
           where: { applianceId: notif.applianceId, clearedAt: null },
         });
         if (!existing) {
-          const clientRecord = await prisma.client.findUnique({ where: { id: notif.clientId }, select: { vendorId: true } });
+          const clientRecord = await prisma.client.findUnique({
+            where: { id: notif.clientId },
+            select: { vendorId: true, vendor: { select: { contactEmail: true } } },
+          });
           if (clientRecord?.vendorId) {
+            vendorEmail = clientRecord.vendor.contactEmail;
             try {
               await prisma.escalationFlag.create({
                 data: { applianceId: notif.applianceId, vendorId: clientRecord.vendorId },
@@ -80,11 +85,15 @@ export async function GET(req: NextRequest) {
           }
         }
       }
-      try {
-        await sendEscalationEmail(vars);
-        log.push(`escalation: sent to escalation address for ${client.name}`);
-      } catch (err: any) {
-        log.push(`escalation: FAILED — ${err.message}`);
+      if (vendorEmail) {
+        try {
+          await sendEscalationEmail(vars, vendorEmail);
+          log.push(`escalation: sent to supplier ${vendorEmail} for ${client.name}`);
+        } catch (err: any) {
+          log.push(`escalation: FAILED — ${err.message}`);
+        }
+      } else {
+        log.push(`escalation: skipped email — no vendor email found for ${client.name}`);
       }
     } else {
       if (notif.channel === "email" || notif.channel === "both") {
