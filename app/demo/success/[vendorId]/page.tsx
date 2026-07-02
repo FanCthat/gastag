@@ -35,7 +35,7 @@ export default async function DemoSuccessPage({
 
   const steps = [
     "Display a QR code on your screen and scan it with a phone.",
-    "Register as your customer would — name, email, address, appliance type, cylinder size.",
+    "Register as your customer would — name, email, address, appliance type, cylinder size. Complete both screens before checking your email, otherwise \"Order gas now\" will show an empty page.",
     "Watch your inbox — you'll receive your first demo email immediately.",
     "Tap \"Next demo email\" in each email to progress through the reminder sequence.",
     "Log into your supplier dashboard to see orders and clients.",
