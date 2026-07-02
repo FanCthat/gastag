@@ -7,7 +7,8 @@ const FROM = "GasTag <noreply@mobwatch.co.za>";
 const baseUrl = process.env.APP_BASE_URL || "https://gastag.vercel.app";
 
 function generateDemoPassword(): string {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  // Exclude visually ambiguous characters: 0/O, 1/I/L
+  const chars = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
   let result = "";
   for (let i = 0; i < 6; i++) {
     result += chars.charAt(Math.floor(Math.random() * chars.length));
@@ -59,7 +60,7 @@ export async function POST(req: NextRequest) {
       const newPassword = generateDemoPassword();
       await prisma.vendor.update({
         where: { id: existing.id },
-        data: { name: businessName.trim(), contactName: contactName.trim(), password: await bcrypt.hash(newPassword, 12) },
+        data: { name: businessName.trim(), contactName: contactName.trim(), password: await bcrypt.hash(newPassword, 12), isDemo: true, isActive: false },
       });
       vendor = { id: existing.id, name: businessName.trim() };
       plainPassword = newPassword;
