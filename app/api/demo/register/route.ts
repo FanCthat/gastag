@@ -25,24 +25,33 @@ export async function POST(req: NextRequest) {
   const plainPassword = generateDemoPassword();
   const hashedPassword = await bcrypt.hash(plainPassword, 12);
 
-  const vendor = await prisma.vendor.create({
-    data: {
-      name: businessName.trim(),
-      contactName: contactName.trim(),
-      contactEmail: email.trim().toLowerCase(),
-      password: hashedPassword,
-      region: "Demo",
-      isDemo: true,
-      isActive: false,
-      qrCodes: {
-        create: [
-          { state: "unregistered" },
-          { state: "unregistered" },
-          { state: "unregistered" },
-        ],
+  let vendor: { id: string; name: string };
+  try {
+    vendor = await prisma.vendor.create({
+      data: {
+        name: businessName.trim(),
+        contactName: contactName.trim(),
+        contactEmail: email.trim().toLowerCase(),
+        password: hashedPassword,
+        region: "Demo",
+        isDemo: true,
+        isActive: false,
+        qrCodes: {
+          create: [
+            { state: "unregistered" },
+            { state: "unregistered" },
+            { state: "unregistered" },
+          ],
+        },
       },
-    },
-  });
+    });
+  } catch (err: any) {
+    console.error("Demo vendor create error:", err);
+    if (err?.code === "P2002") {
+      return NextResponse.json({ error: "An account with that email already exists." }, { status: 409 });
+    }
+    return NextResponse.json({ error: `Database error: ${err?.message ?? err}` }, { status: 500 });
+  }
 
   try {
     const resend = new Resend(process.env.RESEND_API_KEY!);
