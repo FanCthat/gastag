@@ -46,6 +46,9 @@ export default function VendorDetailClient({ vendor }: { vendor: Vendor }) {
   const [savingPassword, setSavingPassword] = useState(false);
   const [passwordSaved, setPasswordSaved] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
 
   async function activateFromDemo() {
     setActivating(true);
@@ -172,6 +175,20 @@ export default function VendorDetailClient({ vendor }: { vendor: Vendor }) {
     setNewPassword("");
     setPasswordSaved(true);
     setTimeout(() => setPasswordSaved(false), 3000);
+  }
+
+  async function deleteVendor() {
+    setDeleting(true);
+    setDeleteError("");
+    const res = await fetch(`/api/admin/vendors/${vendor.id}`, { method: "DELETE" });
+    if (res.ok) {
+      router.push("/admin/vendors");
+    } else {
+      const d = await res.json().catch(() => ({}));
+      setDeleteError(d.error || "Delete failed — please try again.");
+      setDeleting(false);
+      setConfirmDelete(false);
+    }
   }
 
   const stats = [
@@ -376,6 +393,39 @@ export default function VendorDetailClient({ vendor }: { vendor: Vendor }) {
           </button>
           {passwordSaved && <span className="text-sm text-green-600">Saved!</span>}
         </div>
+      </div>
+
+      {/* Delete supplier */}
+      <div className="bg-white rounded-xl border border-red-200 p-5">
+        <div className="font-medium text-red-700 mb-1">Delete supplier</div>
+        <p className="text-sm text-gray-500 mb-4">
+          Permanently removes this supplier and all their data — QR codes, clients, orders, and notifications. This cannot be undone.
+        </p>
+        {!confirmDelete ? (
+          <button
+            onClick={() => setConfirmDelete(true)}
+            className="bg-red-50 hover:bg-red-100 text-red-600 text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
+          >
+            Delete supplier…
+          </button>
+        ) : (
+          <div className="flex items-center gap-3">
+            <button
+              onClick={deleteVendor}
+              disabled={deleting}
+              className="bg-red-600 hover:bg-red-700 text-white text-sm font-semibold px-4 py-2 rounded-lg disabled:opacity-50 transition-colors"
+            >
+              {deleting ? "Deleting…" : "Yes, delete everything"}
+            </button>
+            <button
+              onClick={() => setConfirmDelete(false)}
+              className="text-sm text-gray-500 hover:text-gray-700"
+            >
+              Cancel
+            </button>
+          </div>
+        )}
+        {deleteError && <p className="text-sm text-red-600 mt-2">{deleteError}</p>}
       </div>
     </div>
   );

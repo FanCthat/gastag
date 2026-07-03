@@ -49,6 +49,18 @@ export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id:
   if (!requireSuperAdmin(session)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
-  await prisma.vendor.delete({ where: { id } });
+
+  // Delete in dependency order — Prisma cascades handle children once parents are gone
+  await prisma.$transaction([
+    // 1. Escalation flags reference vendorId directly (no cascade from vendor)
+    prisma.escalationFlag.deleteMany({ where: { vendorId: id } }),
+    // 2. Orders reference vendorId (OrderItems cascade from Order)
+    prisma.order.deleteMany({ where: { vendorId: id } }),
+    // 3. Clients reference vendorId (Appliances → Cycles/Notifications/PushSubs cascade from Client)
+    prisma.client.deleteMany({ where: { vendorId: id } }),
+    // 4. Vendor — QRCodes cascade from Vendor
+    prisma.vendor.delete({ where: { id } }),
+  ]);
+
   return NextResponse.json({ ok: true });
 }
