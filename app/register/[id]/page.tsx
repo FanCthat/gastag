@@ -1,15 +1,20 @@
 import { prisma } from "@/lib/db";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import RegisterForm from "./_form";
 
 export default async function RegisterPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const qr = await prisma.qRCode.findUnique({
     where: { id },
-    include: { vendor: { select: { name: true } } },
+    include: { vendor: { select: { name: true } }, client: { select: { id: true } } },
   });
 
-  if (!qr || qr.state !== "unregistered") notFound();
+  if (!qr) notFound();
+
+  // Already registered — send them to their account
+  if (qr.state === "registered" && qr.client) redirect(`/account/${qr.client.id}`);
+
+  if (qr.state !== "unregistered") notFound();
 
   const cylinderSizes = [3, 5, 7, 9, 14, 19, 48];
 
