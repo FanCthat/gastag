@@ -77,6 +77,12 @@ export default async function DemoSuccessPage({
               <div key={i} className="flex flex-col items-center gap-2">
                 <img src={dataUrl} alt={`QR Code ${i + 1}`} className="w-36 h-36 border border-gray-200 rounded-lg" />
                 <span className="text-xs text-gray-500 font-medium">QR Code {i + 1}</span>
+                <a
+                  href={`${baseUrl}/scan/${qrCodes[i].id}`}
+                  className="text-xs text-orange-500 underline"
+                >
+                  (or tap here)
+                </a>
               </div>
             ))}
           </div>
