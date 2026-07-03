@@ -58,9 +58,21 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "An active supplier account already exists with that email address. Please use a different email." }, { status: 409 });
       }
       const newPassword = generateDemoPassword();
+      // Wipe old test data and QR codes so they get a clean slate
+      await prisma.escalationFlag.deleteMany({ where: { vendorId: existing.id } });
+      await prisma.order.deleteMany({ where: { vendorId: existing.id } });
+      await prisma.client.deleteMany({ where: { vendorId: existing.id } });
+      await prisma.qRCode.deleteMany({ where: { vendorId: existing.id } });
       await prisma.vendor.update({
         where: { id: existing.id },
-        data: { name: businessName.trim(), contactName: contactName.trim(), password: await bcrypt.hash(newPassword, 12), isDemo: true, isActive: false },
+        data: {
+          name: businessName.trim(),
+          contactName: contactName.trim(),
+          password: await bcrypt.hash(newPassword, 12),
+          isDemo: true,
+          isActive: false,
+          qrCodes: { create: [{ state: "unregistered" }, { state: "unregistered" }, { state: "unregistered" }] },
+        },
       });
       vendor = { id: existing.id, name: businessName.trim() };
       plainPassword = newPassword;
