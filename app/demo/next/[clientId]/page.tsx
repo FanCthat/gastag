@@ -137,12 +137,19 @@ export default async function DemoNextEmailPage({
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 max-w-md space-y-5">
           <div className="text-center space-y-2">
             <div className="text-4xl">✅</div>
-            <h1 className="text-xl font-bold text-gray-900">You've received all 3 demo reminder emails!</h1>
-            <p className="text-sm text-gray-500">Check your inbox to see the full sequence your customers will receive.</p>
+            <h1 className="text-xl font-bold text-gray-900">You've seen the full customer experience!</h1>
+            <p className="text-sm text-gray-500">
+              Those 3 emails are exactly what your customers receive — spread over weeks in real life,
+              compressed into minutes in this demo.
+            </p>
           </div>
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-900 space-y-1">
-            <p className="font-semibold">One more thing — the escalation alert</p>
-            <p>If a customer still hasn't ordered 3 weeks after their predicted empty date, GasTag automatically sends <strong>you</strong> (the supplier) an alert. This one doesn't go to the customer — it's a heads-up so you can follow up personally before the relationship goes cold.</p>
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-900 space-y-2">
+            <p className="font-semibold">One more thing you should know — the escalation alert</p>
+            <p>If a customer still hasn't ordered 3 weeks after their predicted empty date, GasTag automatically sends <strong>you</strong> (the supplier) a private alert. Your customer never sees this — it's a quiet heads-up so you can follow up personally and keep the relationship warm.</p>
+          </div>
+          <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-700">
+            <p className="font-semibold text-gray-800 mb-1">Now see it from your side as the supplier</p>
+            <p>Log into your dashboard to see the customer you just registered, manage orders, and explore your view of the system.</p>
           </div>
           <div className="text-center">
             <Link
@@ -160,43 +167,52 @@ export default async function DemoNextEmailPage({
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 max-w-md text-center space-y-4">
-        <div className="text-4xl">✓</div>
-        <h1 className="text-xl font-bold text-gray-900">
-          {emailSent ? "Demo email sent!" : "Something went wrong"}
-        </h1>
-        {emailSent && (
+        {emailSent ? (
           <>
+            <div className="text-4xl">📬</div>
+            <h1 className="text-xl font-bold text-gray-900">
+              Email {emailNumber} of 3 sent!
+            </h1>
             <p className="text-sm text-gray-600">
-              Check your inbox at <strong>{client.email}</strong>
+              Check your inbox at <strong>{client.email}</strong> — it should arrive within a minute.
+              {emailNumber === 2 && " (Check your spam folder if you don't see it.)"}
             </p>
+            <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-600 text-left">
+              {!isLast ? (
+                <>
+                  <p className="font-semibold text-gray-800 mb-1">What this email represents</p>
+                  <p>In real life, this reminder arrives <strong>3 weeks before</strong> your customer's cylinder is predicted to run empty — giving them plenty of time to order.</p>
+                  <p className="mt-2">Read the email, then come back here and tap the button below to receive the final reminder.</p>
+                </>
+              ) : (
+                <>
+                  <p className="font-semibold text-gray-800 mb-1">This is the final reminder</p>
+                  <p>In real life, this email arrives on the <strong>predicted empty date</strong>. It includes an "Order gas now" button — tap it in your inbox to experience the ordering process your customer would go through.</p>
+                  <p className="mt-2">Once you've done that, come back and log into your supplier dashboard to see the order come in.</p>
+                </>
+              )}
+            </div>
             {!isLast ? (
-              <>
-                <p className="text-sm text-gray-500">
-                  This is email {emailNumber} of 3. Tap below to receive the next one.
-                </p>
-                <Link
-                  href={`/demo/next/${clientId}`}
-                  className="inline-block bg-blue-700 hover:bg-blue-800 text-white font-semibold px-6 py-3 rounded-xl text-sm transition-colors"
-                >
-                  Receive next demo email →
-                </Link>
-              </>
+              <Link
+                href={`/demo/next/${clientId}`}
+                className="inline-block bg-blue-700 hover:bg-blue-800 text-white font-semibold px-6 py-3 rounded-xl text-sm transition-colors"
+              >
+                Receive next demo email →
+              </Link>
             ) : (
-              <>
-                <p className="text-sm text-gray-500">
-                  You've received all 3 demo reminder emails.
-                </p>
-                <p className="text-sm text-gray-500">
-                  Now log into your supplier dashboard to see what your customers experience.
-                </p>
-                <Link
-                  href="/vendor/login"
-                  className="inline-block bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-3 rounded-xl text-sm transition-colors"
-                >
-                  Log into your supplier dashboard →
-                </Link>
-              </>
+              <Link
+                href="/vendor/login"
+                className="inline-block bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-3 rounded-xl text-sm transition-colors"
+              >
+                Log into your supplier dashboard →
+              </Link>
             )}
+          </>
+        ) : (
+          <>
+            <div className="text-4xl">⚠️</div>
+            <h1 className="text-xl font-bold text-gray-900">Something went wrong</h1>
+            <p className="text-sm text-gray-500">The email couldn't be sent. Please try again or contact support.</p>
           </>
         )}
       </div>
