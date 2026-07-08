@@ -4,9 +4,8 @@ import { authOptions } from "@/lib/auth-options";
 import { prisma } from "@/lib/db";
 import { predictNextCycle, calcActualDurationMonths } from "@/lib/prediction";
 import { scheduleNotificationsForCycle, cancelPendingNotificationsForCycle } from "@/lib/notifications";
-import { Resend } from "resend";
+import { sendEmail } from "@/lib/email";
 
-function getResend() { return new Resend(process.env.RESEND_API_KEY!); }
 const FROM = "GasTag <noreply@mobwatch.co.za>";
 
 function formatDate(d: Date) {
@@ -18,6 +17,11 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const vendorId = (session?.user as any)?.id;
   if (!vendorId || (session?.user as any)?.role !== "vendor") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const vendor = await prisma.vendor.findUnique({ where: { id: vendorId }, select: { isActive: true } });
+  if (!vendor?.isActive) {
+    return NextResponse.json({ error: "Vendor account is not active." }, { status: 403 });
   }
 
   const { id: orderId } = await params;
@@ -91,20 +95,27 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       nextDates.push({ applianceType: appliance.applianceType, cylinderSizeKg: appliance.cylinderSizeKg, nextEmptyDate });
     }
 
-    // Send delivery confirmation email to client
     const accountUrl = `${process.env.APP_BASE_URL}/account/${order.clientId}`;
     const cylinderLines = nextDates
       .map(d => `<li><strong>${d.cylinderSizeKg}kg ${d.applianceType.replace("_", " ")}</strong> — next predicted empty: <strong>${formatDate(d.nextEmptyDate)}</strong></li>`)
       .join("");
 
+    const isCollection = order.fulfilmentType === "collection";
+    const emailSubject = isCollection
+      ? "Your gas cylinder has been collected — next cycle started"
+      : "Your gas has been delivered — next cycle started";
+    const emailIntro = isCollection
+      ? "Great news — your cylinder collection has been confirmed! Here's a summary of your updated cylinders:"
+      : "Great news — your gas delivery has been confirmed! Here's a summary of your updated cylinders:";
+
     try {
-      await getResend().emails.send({
-        from: FROM,
+      await sendEmail({
         to: order.client.email,
-        subject: "Your gas has been delivered — next cycle started",
+        subject: emailSubject,
+        from: FROM,
         html: `
           <p>Hi ${order.client.name.split(" ")[0]},</p>
-          <p>Great news — your gas delivery has been confirmed! Here's a summary of your updated cylinders:</p>
+          <p>${emailIntro}</p>
           <ul>${cylinderLines}</ul>
           <p>We'll send you reminders well before each cylinder runs out, so you're never caught without gas.</p>
           <p><a href="${accountUrl}" style="background:#f97316;color:white;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:600;display:inline-block">View my account →</a></p>
@@ -112,7 +123,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         `,
       });
     } catch (e) {
-      console.error("Delivery confirmation email failed:", e);
+      console.error("Confirmation email failed:", e);
     }
   }
 
