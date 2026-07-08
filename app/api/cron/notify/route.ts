@@ -68,9 +68,9 @@ export async function GET(req: NextRequest) {
         if (!existing) {
           const clientRecord = await prisma.client.findUnique({
             where: { id: notif.clientId },
-            select: { vendorId: true, vendor: { select: { contactEmail: true } } },
+            select: { vendorId: true, vendor: { select: { contactEmail: true, isActive: true } } },
           });
-          if (clientRecord?.vendorId) {
+          if (clientRecord?.vendorId && clientRecord.vendor.isActive) {
             vendorEmail = clientRecord.vendor.contactEmail;
             try {
               await prisma.escalationFlag.create({
@@ -81,7 +81,7 @@ export async function GET(req: NextRequest) {
               log.push(`escalation: flag create FAILED — ${err.message}`);
             }
           } else {
-            log.push(`escalation: skipped flag — no vendor found for client ${notif.clientId}`);
+            log.push(`escalation: skipped — vendor inactive or not found for client ${notif.clientId}`);
           }
         }
       }
