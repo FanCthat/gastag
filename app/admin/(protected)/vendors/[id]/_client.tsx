@@ -229,7 +229,7 @@ export default function VendorDetailClient({ vendor }: { vendor: Vendor }) {
         ))}
       </div>
 
-      {/* Status toggle */}
+      {/* Status toggle — deactivation only. Activation goes through the Activate button above. */}
       <div className="bg-white rounded-xl border border-gray-200 p-5 flex items-center justify-between">
         <div>
           <div className="font-medium text-gray-900">Account status</div>
@@ -237,17 +237,15 @@ export default function VendorDetailClient({ vendor }: { vendor: Vendor }) {
             {isActive ? "Vendor can log in and is active." : "Vendor is inactive and cannot log in."}
           </div>
         </div>
-        <button
-          onClick={toggleActive}
-          disabled={toggling}
-          className={`text-sm font-semibold px-4 py-2 rounded-lg transition-colors disabled:opacity-50 ${
-            isActive
-              ? "bg-red-50 text-red-600 hover:bg-red-100"
-              : "bg-green-50 text-green-700 hover:bg-green-100"
-          }`}
-        >
-          {toggling ? "…" : isActive ? "Deactivate" : "Activate"}
-        </button>
+        {isActive && (
+          <button
+            onClick={toggleActive}
+            disabled={toggling}
+            className="text-sm font-semibold px-4 py-2 rounded-lg transition-colors disabled:opacity-50 bg-red-50 text-red-600 hover:bg-red-100"
+          >
+            {toggling ? "…" : "Deactivate"}
+          </button>
+        )}
       </div>
 
       {/* QR code generation */}

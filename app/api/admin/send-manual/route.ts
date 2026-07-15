@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Resend } from "resend";
+import { sendEmail } from "@/lib/email";
 
 export async function GET(req: NextRequest) {
   const secret = req.nextUrl.searchParams.get("secret");
@@ -7,8 +7,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const resend = new Resend(process.env.RESEND_API_KEY!);
-  const to = req.nextUrl.searchParams.get("to") === "karl"
+  const recipients = req.nextUrl.searchParams.get("to") === "karl"
     ? ["kschroder1@gmail.com", "paul@mobwatch.co.za"]
     : ["paul@mobwatch.co.za"];
 
@@ -217,13 +216,11 @@ They can call or WhatsApp <strong>+27 82 499 3552</strong>. This number also app
   `;
 
   try {
-    const result = await resend.emails.send({
-      from: "GasTag <noreply@mobwatch.co.za>",
-      to,
-      subject: "GasTag — User Manual" + (to.length > 1 ? "" : " (review copy)"),
-      html,
-    });
-    return NextResponse.json({ ok: true, id: result.data?.id, sentTo: to });
+    const subject = "GasTag — User Manual" + (recipients.length > 1 ? "" : " (review copy)");
+    for (const to of recipients) {
+      await sendEmail({ to, subject, html, from: "GasTag <noreply@mobwatch.co.za>" });
+    }
+    return NextResponse.json({ ok: true, sentTo: recipients });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }

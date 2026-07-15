@@ -2,10 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth-options";
 import { prisma } from "@/lib/db";
-import { Resend } from "resend";
-
-function getResend() { return new Resend(process.env.RESEND_API_KEY!); }
-const FROM = "GasTag <noreply@mobwatch.co.za>";
+import { sendEmail } from "@/lib/email";
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -24,9 +21,10 @@ export async function POST(req: NextRequest) {
 
   const vendor = await prisma.vendor.findUnique({
     where: { id: vendorId },
-    select: { name: true, logoUrl: true },
+    select: { name: true, logoUrl: true, isActive: true },
   });
   if (!vendor) return NextResponse.json({ error: "Vendor not found." }, { status: 404 });
+  if (!vendor.isActive) return NextResponse.json({ error: "Vendor account is not active." }, { status: 403 });
 
   const clients = await prisma.client.findMany({
     where: { vendorId, id: { in: clientIds } },
@@ -68,12 +66,7 @@ export async function POST(req: NextRequest) {
       </div>
     `;
     try {
-      await getResend().emails.send({
-        from: FROM,
-        to: client.email,
-        subject: subject.trim(),
-        html,
-      });
+      await sendEmail({ to: client.email, subject: subject.trim(), html });
       sent++;
     } catch {
       failed++;

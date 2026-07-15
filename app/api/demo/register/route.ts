@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import bcrypt from "bcryptjs";
-import { Resend } from "resend";
+import { sendEmail } from "@/lib/email";
 
 const FROM = "GasTag <noreply@mobwatch.co.za>";
 const baseUrl = process.env.APP_BASE_URL || "https://gastag.vercel.app";
@@ -49,7 +49,6 @@ export async function POST(req: NextRequest) {
   } catch (err: any) {
     console.error("Demo vendor create error:", err);
     if (err?.code === "P2002") {
-      // Email already exists — if it's a demo vendor, reset their password and reuse the account
       const existing = await prisma.vendor.findUnique({
         where: { contactEmail: email.trim().toLowerCase() },
         select: { id: true, isDemo: true },
@@ -58,7 +57,6 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "An active supplier account already exists with that email address. Please use a different email." }, { status: 409 });
       }
       const newPassword = generateDemoPassword();
-      // Wipe old test data and QR codes so they get a clean slate
       await prisma.escalationFlag.deleteMany({ where: { vendorId: existing.id } });
       await prisma.order.deleteMany({ where: { vendorId: existing.id } });
       await prisma.client.deleteMany({ where: { vendorId: existing.id } });
@@ -82,11 +80,10 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const resend = new Resend(process.env.RESEND_API_KEY!);
-    await resend.emails.send({
-      from: FROM,
+    await sendEmail({
       to: "paul@mobwatch.co.za",
       subject: `New demo signup: ${businessName.trim()}`,
+      from: FROM,
       html: `
         <h2>New GasTag demo signup</h2>
         <table style="border-collapse:collapse;font-size:14px;">

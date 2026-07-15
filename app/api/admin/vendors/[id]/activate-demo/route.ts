@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth-options";
 import { prisma } from "@/lib/db";
-import { Resend } from "resend";
+import { sendEmail } from "@/lib/email";
 
 const FROM = "GasTag <noreply@mobwatch.co.za>";
 const baseUrl = process.env.APP_BASE_URL || "https://gastag.vercel.app";
@@ -23,11 +23,6 @@ export async function POST(_: NextRequest, { params }: { params: Promise<{ id: s
   if (!vendor) return NextResponse.json({ error: "Vendor not found." }, { status: 404 });
   if (!vendor.isDemo) return NextResponse.json({ error: "Vendor is not a demo vendor." }, { status: 400 });
 
-  const clients = await prisma.client.findMany({
-    where: { vendorId: id },
-    select: { id: true },
-  });
-
   await prisma.$transaction([
     prisma.client.deleteMany({ where: { vendorId: id } }),
     prisma.qRCode.deleteMany({ where: { vendorId: id } }),
@@ -40,12 +35,10 @@ export async function POST(_: NextRequest, { params }: { params: Promise<{ id: s
   const vendorLoginUrl = `${baseUrl}/vendor/login`;
 
   try {
-    const resend = new Resend(process.env.RESEND_API_KEY!);
-
-    await resend.emails.send({
-      from: FROM,
+    await sendEmail({
       to: vendor.contactEmail,
       subject: "Welcome to GasTag — your account is now live!",
+      from: FROM,
       html: `
         <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:white;padding:28px 24px;border:1px solid #e5e7eb;border-radius:8px;">
           <h2 style="color:#111827;margin:0 0 16px;">Welcome to GasTag, ${vendor.contactName}!</h2>
@@ -57,10 +50,10 @@ export async function POST(_: NextRequest, { params }: { params: Promise<{ id: s
       `,
     });
 
-    await resend.emails.send({
-      from: FROM,
+    await sendEmail({
       to: "paul@mobwatch.co.za",
       subject: `GasTag vendor activated: ${vendor.name}`,
+      from: FROM,
       html: `
         <p><strong>${vendor.name}</strong> (${vendor.contactEmail}) has been activated.</p>
         <p>Demo test data has been cleared. Their account is now live.</p>

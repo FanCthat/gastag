@@ -6,7 +6,8 @@ import { useRouter } from "next/navigation";
 type Order = {
   id: string;
   placedAt: Date;
-  deliveryAddress: string;
+  fulfilmentType: string;
+  deliveryAddress: string | null;
   status: string;
   client: { name: string; email: string; phone: string | null; deliveryAddress: string };
   orderItems: {
@@ -23,7 +24,7 @@ export default function PendingOrders({ orders, vendorId }: { orders: Order[]; v
   const [confirming, setConfirming] = useState<string | null>(null);
   const [confirmError, setConfirmError] = useState<string | null>(null);
 
-  async function confirmDelivery(orderId: string) {
+  async function confirmOrder(orderId: string) {
     setConfirming(orderId);
     setConfirmError(null);
     try {
@@ -63,40 +64,56 @@ export default function PendingOrders({ orders, vendorId }: { orders: Order[]; v
           {confirmError}
         </div>
       )}
-      {orders.map(order => (
-        <div key={order.id} className="bg-white rounded-xl border border-gray-200 p-5">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex-1">
-              <div className="font-semibold text-gray-900">{order.client.name}</div>
-              <div className="text-sm text-gray-500">{order.client.email}</div>
-              {order.client.phone && (
-                <a href={`https://wa.me/${order.client.phone.replace(/\D/g, "")}`} target="_blank" rel="noreferrer"
-                  className="text-sm text-green-600 hover:underline">
-                  {order.client.phone}
-                </a>
-              )}
-              <div className="mt-2 text-sm text-gray-700">
-                <span className="font-medium">Deliver to:</span> {order.deliveryAddress}
+      {orders.map(order => {
+        const isCollection = order.fulfilmentType === "collection";
+        return (
+          <div key={order.id} className="bg-white rounded-xl border border-gray-200 p-5">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-semibold text-gray-900">{order.client.name}</span>
+                  <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full ${
+                    isCollection
+                      ? "bg-blue-100 text-blue-700"
+                      : "bg-orange-100 text-orange-700"
+                  }`}>
+                    {isCollection ? "🏪 In-Store Collection" : "🚚 Home Delivery"}
+                  </span>
+                </div>
+                <div className="text-sm text-gray-500">{order.client.email}</div>
+                {order.client.phone && (
+                  <a href={`https://wa.me/${order.client.phone.replace(/\D/g, "")}`} target="_blank" rel="noreferrer"
+                    className="text-sm text-green-600 hover:underline">
+                    {order.client.phone}
+                  </a>
+                )}
+                <div className="mt-2 text-sm text-gray-700">
+                  {isCollection ? (
+                    <span className="text-blue-700">Client will bring cylinder(s) in for refill</span>
+                  ) : (
+                    <><span className="font-medium">Deliver to:</span> {order.deliveryAddress}</>
+                  )}
+                </div>
+                <div className="mt-2 space-y-1">
+                  {order.orderItems.map((item, i) => (
+                    <div key={i} className="text-sm text-gray-600">
+                      • {item.appliance.cylinderSizeKg}kg cylinder ({item.appliance.applianceType})
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-2 text-xs text-gray-400">Ordered {formatDate(order.placedAt)}</div>
               </div>
-              <div className="mt-2 space-y-1">
-                {order.orderItems.map((item, i) => (
-                  <div key={i} className="text-sm text-gray-600">
-                    • {item.appliance.cylinderSizeKg}kg cylinder ({item.appliance.applianceType})
-                  </div>
-                ))}
-              </div>
-              <div className="mt-2 text-xs text-gray-400">Ordered {formatDate(order.placedAt)}</div>
+              <button
+                onClick={() => confirmOrder(order.id)}
+                disabled={confirming === order.id}
+                className="shrink-0 bg-green-500 hover:bg-green-600 text-white text-sm font-semibold px-4 py-2 rounded-lg disabled:opacity-50 transition-colors"
+              >
+                {confirming === order.id ? "…" : isCollection ? "Confirm Collected" : "Confirm Delivered"}
+              </button>
             </div>
-            <button
-              onClick={() => confirmDelivery(order.id)}
-              disabled={confirming === order.id}
-              className="shrink-0 bg-green-500 hover:bg-green-600 text-white text-sm font-semibold px-4 py-2 rounded-lg disabled:opacity-50 transition-colors"
-            >
-              {confirming === order.id ? "…" : "Confirm delivery"}
-            </button>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

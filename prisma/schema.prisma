@@ -105,17 +105,18 @@ model CylinderCycle {
 }
 
 model Order {
-  id                      String    @id @default(cuid())
-  clientId                String
-  vendorId                String
-  deliveryAddress         String
-  addressIsPermanentChange Boolean  @default(false)
-  status                  String    @default("pending") // pending | confirmed | delivered
-  placedAt                DateTime  @default(now())
-  deliveredAt             DateTime?
-  client                  Client    @relation(fields: [clientId], references: [id])
-  vendor                  Vendor    @relation(fields: [vendorId], references: [id])
-  orderItems              OrderItem[]
+  id                       String    @id @default(cuid())
+  clientId                 String
+  vendorId                 String
+  fulfilmentType           String    @default("delivery") // delivery | collection
+  deliveryAddress          String?
+  addressIsPermanentChange Boolean   @default(false)
+  status                   String    @default("pending") // pending | confirmed | delivered
+  placedAt                 DateTime  @default(now())
+  deliveredAt              DateTime?
+  client                   Client    @relation(fields: [clientId], references: [id])
+  vendor                   Vendor    @relation(fields: [vendorId], references: [id])
+  orderItems               OrderItem[]
 
   @@index([vendorId])
   @@index([clientId])

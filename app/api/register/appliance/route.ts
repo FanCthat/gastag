@@ -2,9 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { predictCycle1 } from "@/lib/prediction";
 import { scheduleNotificationsForCycle } from "@/lib/notifications";
-import { Resend } from "resend";
+import { sendEmail } from "@/lib/email";
 
-function getResend() { return new Resend(process.env.RESEND_API_KEY!); }
 const FROM = "GasTag <noreply@mobwatch.co.za>";
 
 function formatDate(d: Date) {
@@ -48,11 +47,9 @@ export async function POST(req: NextRequest) {
   const reorderUrl = `${process.env.APP_BASE_URL}/reorder/${clientId}`;
   const applianceLabel = applianceType.replace("_", " ");
 
-  // Check if this is the first appliance (welcome email) or additional (added email)
   const applianceCount = await prisma.appliance.count({ where: { clientId } });
   const isFirst = applianceCount === 1;
 
-  // Low gas = remaining months provided and cylinder runs out within 6 weeks
   const daysRemaining = Math.ceil((predictedEmptyDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
   const isLowGas = currentRemainingMonths !== null && currentRemainingMonths !== undefined && daysRemaining <= 42;
 
@@ -72,13 +69,12 @@ export async function POST(req: NextRequest) {
   let emailError: string | null = null;
 
   if (client.vendor.isDemo) {
-    // Demo account: send the simulated 6-week warning instead of a welcome email
     const nextDemoUrl = `${process.env.APP_BASE_URL}/demo/next/${clientId}`;
     try {
-      const result = await getResend().emails.send({
-        from: FROM,
+      await sendEmail({
         to: client.email,
         subject: `🔬 DEMO — Your first GasTag reminder, ${firstName}`,
+        from: FROM,
         html: `
           <div style="font-family:sans-serif;max-width:560px;margin:0 auto;">
             <div style="background:#f97316;color:white;padding:12px 20px;font-weight:bold;font-size:13px;border-radius:8px 8px 0 0;">
@@ -97,20 +93,16 @@ export async function POST(req: NextRequest) {
           </div>
         `,
       });
-      if (result.error) emailError = result.error.message;
-      else {
-        await prisma.notification.create({
-          data: { clientId, type: "demo_6week", scheduledFor: new Date(), sentAt: new Date(), channel: "email" },
-        });
-      }
+      await prisma.notification.create({
+        data: { clientId, type: "demo_6week", scheduledFor: new Date(), sentAt: new Date(), channel: "email" },
+      });
     } catch (e: any) {
       emailError = e?.message ?? "unknown error";
       console.error("Demo email 1 failed:", e);
     }
   } else {
     try {
-      const result = await getResend().emails.send({
-        from: FROM,
+      await sendEmail({
         to: client.email,
         subject: isFirst
           ? (isLowGas
@@ -119,6 +111,7 @@ export async function POST(req: NextRequest) {
           : (isLowGas
               ? `GasTag — ${applianceLabel} added (low gas alert)`
               : `GasTag — ${applianceLabel} added to your account`),
+        from: FROM,
         html: isFirst ? `
           <p>Hi ${firstName},</p>
           <p>Welcome to GasTag! Your <strong>${cylinderSizeKg}kg ${applianceLabel}</strong> cylinder has been registered with <strong>${client.vendor.name}</strong>.</p>
@@ -138,10 +131,6 @@ export async function POST(req: NextRequest) {
           <p style="color:#9ca3af;font-size:12px;margin-top:24px">Need help? Call or WhatsApp <a href="tel:+27824993552">+27 82 499 3552</a></p>
         `,
       });
-      if (result.error) {
-        emailError = result.error.message;
-        console.error("Welcome email failed:", result.error);
-      }
     } catch (e: any) {
       emailError = e?.message ?? "unknown error";
       console.error("Welcome email exception:", e);
