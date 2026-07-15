@@ -16,7 +16,10 @@ type Client = {
   appliances: Appliance[];
 };
 
+type FulfilmentType = "delivery" | "collection";
+
 export default function ReorderForm({ client, vendorWhatsapp }: { client: Client; vendorWhatsapp: string | null }) {
+  const [fulfilmentType, setFulfilmentType] = useState<FulfilmentType>("delivery");
   const [address, setAddress] = useState(client.deliveryAddress);
   const [permanent, setPermanent] = useState(false);
   const [selected, setSelected] = useState<string[]>(client.appliances.map(a => a.id));
@@ -31,6 +34,7 @@ export default function ReorderForm({ client, vendorWhatsapp }: { client: Client
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (selected.length === 0) { setError("Select at least one cylinder."); return; }
+    if (fulfilmentType === "delivery" && !address.trim()) { setError("Please enter a delivery address."); return; }
     setLoading(true);
     setError("");
     const res = await fetch("/api/reorder", {
@@ -39,8 +43,9 @@ export default function ReorderForm({ client, vendorWhatsapp }: { client: Client
       body: JSON.stringify({
         clientId: client.id,
         applianceIds: selected,
-        deliveryAddress: address,
-        addressIsPermanentChange: permanent,
+        fulfilmentType,
+        deliveryAddress: fulfilmentType === "delivery" ? address : null,
+        addressIsPermanentChange: fulfilmentType === "delivery" ? permanent : false,
       }),
     });
     setLoading(false);
@@ -53,7 +58,11 @@ export default function ReorderForm({ client, vendorWhatsapp }: { client: Client
       <div className="bg-white rounded-2xl border border-gray-200 p-8 text-center">
         <div className="text-4xl mb-4">✓</div>
         <h2 className="text-xl font-bold text-gray-900 mb-2">Order received!</h2>
-        <p className="text-sm text-gray-500 mb-6">Your supplier will be in touch to confirm delivery.</p>
+        <p className="text-sm text-gray-500 mb-6">
+          {fulfilmentType === "collection"
+            ? "Bring your cylinder(s) in at your convenience — your supplier will confirm once refilled."
+            : "Your supplier will be in touch to confirm delivery."}
+        </p>
         <a
           href={`/account/${client.id}`}
           className="inline-block bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-6 py-2.5 rounded-lg transition-colors"
@@ -66,6 +75,36 @@ export default function ReorderForm({ client, vendorWhatsapp }: { client: Client
 
   return (
     <form onSubmit={submit} className="bg-white rounded-2xl border border-gray-200 p-6 space-y-5">
+      <div>
+        <h3 className="text-sm font-semibold text-gray-800 mb-2">How would you like to receive your gas?</h3>
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            type="button"
+            onClick={() => setFulfilmentType("delivery")}
+            className={`flex flex-col items-center gap-1.5 rounded-xl border-2 px-3 py-4 text-sm font-medium transition-colors ${
+              fulfilmentType === "delivery"
+                ? "border-orange-500 bg-orange-50 text-orange-700"
+                : "border-gray-200 text-gray-600 hover:border-gray-300"
+            }`}
+          >
+            <span className="text-2xl">🚚</span>
+            <span>Home Delivery</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setFulfilmentType("collection")}
+            className={`flex flex-col items-center gap-1.5 rounded-xl border-2 px-3 py-4 text-sm font-medium transition-colors ${
+              fulfilmentType === "collection"
+                ? "border-orange-500 bg-orange-50 text-orange-700"
+                : "border-gray-200 text-gray-600 hover:border-gray-300"
+            }`}
+          >
+            <span className="text-2xl">🏪</span>
+            <span>In-Store Collection / Refill</span>
+          </button>
+        </div>
+      </div>
+
       <div>
         <h3 className="text-sm font-semibold text-gray-800 mb-2">Which cylinders?</h3>
         {client.appliances.length === 0 ? (
@@ -89,20 +128,27 @@ export default function ReorderForm({ client, vendorWhatsapp }: { client: Client
         )}
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Delivery address</label>
-        <textarea
-          rows={2}
-          required
-          value={address}
-          onChange={e => setAddress(e.target.value)}
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-orange-500"
-        />
-        <label className="flex items-center gap-2 mt-2 cursor-pointer">
-          <input type="checkbox" checked={permanent} onChange={e => setPermanent(e.target.checked)} className="rounded" />
-          <span className="text-xs text-gray-500">Save as my new default address</span>
-        </label>
-      </div>
+      {fulfilmentType === "delivery" && (
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Delivery address</label>
+          <textarea
+            rows={2}
+            value={address}
+            onChange={e => setAddress(e.target.value)}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+          />
+          <label className="flex items-center gap-2 mt-2 cursor-pointer">
+            <input type="checkbox" checked={permanent} onChange={e => setPermanent(e.target.checked)} className="rounded" />
+            <span className="text-xs text-gray-500">Save as my new default address</span>
+          </label>
+        </div>
+      )}
+
+      {fulfilmentType === "collection" && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 text-sm text-blue-700">
+          Bring your cylinder(s) to the store. Your supplier will process the refill and confirm once done.
+        </div>
+      )}
 
       {error && <p className="text-sm text-red-600">{error}</p>}
 
