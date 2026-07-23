@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
+import { prisma } from "@/lib/db"; // trial end cron
 import { sendEmail } from "@/lib/email";
 
 export const dynamic = "force-dynamic";
