@@ -13,6 +13,7 @@ export default function NewVendorForm() {
     region: "",
     whatsapp: "",
   });
+  const [startTrial, setStartTrial] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -27,7 +28,7 @@ export default function NewVendorForm() {
     const res = await fetch("/api/admin/vendors", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
+      body: JSON.stringify({ ...form, startTrial }),
     });
     setLoading(false);
     if (res.ok) {
@@ -65,6 +66,24 @@ export default function NewVendorForm() {
           />
         </div>
       ))}
+      <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+        <label className="flex items-start gap-3 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={startTrial}
+            onChange={e => setStartTrial(e.target.checked)}
+            className="mt-0.5 accent-orange-500"
+          />
+          <div>
+            <span className="text-sm font-medium text-gray-800">Start 7-day trial</span>
+            <p className="text-xs text-gray-500 mt-0.5">
+              Generates 3 demo QR codes and emails them to the vendor with setup instructions.
+              Uncheck if the vendor is going straight to live (payment received, real batch ordered).
+            </p>
+          </div>
+        </label>
+      </div>
+
       {error && <p className="text-sm text-red-600">{error}</p>}
       <div className="flex gap-3 pt-2">
         <button
