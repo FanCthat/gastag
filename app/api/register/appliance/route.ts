@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
 
   const client = await prisma.client.findUnique({
     where: { id: clientId },
-    include: { vendor: { select: { name: true, isDemo: true } } },
+    include: { vendor: { select: { name: true, isDemo: true, isTrial: true, trialStartedAt: true } } },
   });
   if (!client) return NextResponse.json({ error: "Client not found." }, { status: 404 });
 
@@ -40,7 +40,8 @@ export async function POST(req: NextRequest) {
   });
 
   await scheduleNotificationsForCycle(
-    clientId, appliance.id, cycle.id, predictedEmptyDate, client.notificationPreference
+    clientId, appliance.id, cycle.id, predictedEmptyDate, client.notificationPreference,
+    { isTrial: client.vendor.isTrial, trialStartedAt: client.vendor.trialStartedAt }
   );
 
   const accountUrl = `${process.env.APP_BASE_URL}/account/${clientId}`;
