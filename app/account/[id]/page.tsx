@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import DeleteCylinderButton from "./_components/delete-cylinder-button";
+import EditProfileForm from "./_components/edit-profile-form";
 
 function formatDate(d: Date) {
   return new Date(d).toLocaleDateString("en-ZA", { day: "numeric", month: "long", year: "numeric" });
@@ -119,6 +120,17 @@ export default async function AccountPage({ params }: { params: Promise<{ id: st
             + Add appliance
           </Link>
         </div>
+
+        {/* Edit profile */}
+        <EditProfileForm
+          clientId={clientId}
+          initial={{
+            name: client.name,
+            email: client.email,
+            phone: client.phone,
+            notificationPreference: client.notificationPreference,
+          }}
+        />
 
         {/* Recent orders */}
         {client.orders.length > 0 && (
