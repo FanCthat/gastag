@@ -10,7 +10,7 @@
     },
     {
       "path": "/api/cron/trial-end?secret=gastag-cron-secret",
-      "schedule": "*/10 * * * *"
+      "schedule": "0 8 * * *"
     }
   ]
 }
