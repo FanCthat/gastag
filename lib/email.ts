@@ -32,12 +32,14 @@ export async function sendEmail({
   html,
   from = FROM,
   cc,
+  attachments,
 }: {
   to: string;
   subject: string;
   html: string;
   from?: string;
   cc?: string;
+  attachments?: Array<{ filename: string; content: Buffer }>;
 }): Promise<void> {
   const guardedTo = guardEmail(to);
   if (guardedTo === null) return;
@@ -52,6 +54,7 @@ export async function sendEmail({
     html,
     // Drop CC when guarded — the guard address receives everything.
     ...(cc && !isGuarded ? { cc } : {}),
+    ...(attachments ? { attachments } : {}),
   });
 }
 

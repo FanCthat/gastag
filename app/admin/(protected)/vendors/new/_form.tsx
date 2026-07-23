@@ -11,6 +11,7 @@ export default function NewVendorForm() {
     contactEmail: "",
     password: "",
     region: "",
+    whatsapp: "",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -43,6 +44,7 @@ export default function NewVendorForm() {
     { key: "contactName", label: "Contact person", type: "text", required: true },
     { key: "contactEmail", label: "Login email", type: "email", required: true },
     { key: "password", label: "Initial password", type: "password", required: true },
+    { key: "whatsapp", label: "WhatsApp number", type: "tel", required: false },
     { key: "region", label: "Region / area", type: "text", required: false },
   ];
 
