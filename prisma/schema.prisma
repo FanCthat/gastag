@@ -25,10 +25,14 @@ model Vendor {
   logoUrl         String?
   whatsapp        String?
   region          String?
-  isActive        Boolean  @default(true)
-  isDemo          Boolean  @default(false)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  isActive          Boolean   @default(true)
+  isDemo            Boolean   @default(false)
+  isTrial           Boolean   @default(false)
+  trialStartedAt    DateTime?
+  trialEndsAt       DateTime?
+  trialConvertedAt  DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
   qrCodes         QRCode[]
   clients         Client[]
   orders          Order[]
@@ -39,6 +43,7 @@ model QRCode {
   id           String    @id @default(cuid())
   vendorId     String
   state        String    @default("unregistered") // unregistered | registered
+  isTrialCode  Boolean   @default(false)
   createdAt    DateTime  @default(now())
   registeredAt DateTime?
   vendor       Vendor    @relation(fields: [vendorId], references: [id], onDelete: Cascade)
