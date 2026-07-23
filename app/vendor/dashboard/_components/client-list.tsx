@@ -42,13 +42,14 @@ export default function ClientList({ clients }: { clients: Client[] }) {
         </thead>
         <tbody className="divide-y divide-gray-100">
           {clients.map((c: Client) => {
+            const incomplete = c.appliances.length === 0;
             const nextCycle = c.appliances
               .flatMap(a => a.cylinderCycles)
               .sort((a, b) => new Date(a.predictedEmptyDate).getTime() - new Date(b.predictedEmptyDate).getTime())[0];
             const days = nextCycle ? daysUntil(nextCycle.predictedEmptyDate) : null;
 
             return (
-              <tr key={c.id}>
+              <tr key={c.id} className={incomplete ? "bg-amber-50" : ""}>
                 <td className="px-4 py-3">
                   <div className="font-medium text-gray-900">{c.name}</div>
                   <div className="text-xs text-gray-400">{c.email}</div>
@@ -58,10 +59,13 @@ export default function ClientList({ clients }: { clients: Client[] }) {
                       {c.phone}
                     </a>
                   )}
+                  {incomplete && (
+                    <div className="text-xs text-amber-700 font-medium mt-0.5">Did not finish registering</div>
+                  )}
                 </td>
                 <td className="px-4 py-3 text-gray-600">
                   {c.appliances.length === 0 ? (
-                    <span className="text-gray-400">None</span>
+                    <span className="text-gray-400">—</span>
                   ) : (
                     c.appliances.map(a => (
                       <div key={a.id}>{a.cylinderSizeKg}kg {a.applianceType}</div>

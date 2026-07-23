@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/notify?secret=gastag-cron-secret",
       "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/cron/incomplete-registrations?secret=gastag-cron-secret",
+      "schedule": "0 7 * * *"
     }
   ]
 }

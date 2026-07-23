@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GasTag — See How It Works</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:wght@400;600&display=swap');
+
+:root {
+  --green: #1a6644;
+  --green-dark: #0f3d28;
+  --green-light: #e8f5ee;
+  --orange: #d4650a;
+  --orange-light: #fff4eb;
+  --red: #c0311a;
+  --red-light: #fdecea;
+  --text: #1a1a16;
+  --muted: #6b6a62;
+  --border: rgba(0,0,0,0.09);
+  --white: #ffffff;
+  --bg: #f5f3ee;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ── SCREENS ── */
+.screen {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 480px;
+  min-height: 100vh;
+  padding: 0 0 40px;
+  animation: fadeUp 0.45s ease both;
+}
+.screen.active { display: flex; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── SCREEN 1: LANDING ── */
+.landing-hero {
+  width: 100%;
+  background: var(--green-dark);
+  padding: 52px 28px 44px;
+  text-align: center;
+  color: white;
+}
+
+.gt-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 36px;
+}
+.gt-icon {
+  width: 38px; height: 38px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+}
+.gt-name { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
+
+.hero-hook {
+  font-family: 'Lora', serif;
+  font-size: 26px;
+  font-weight: 400;
+  line-height: 1.35;
+  margin-bottom: 10px;
+  color: #fff;
+}
+.hero-hook em {
+  font-style: italic;
+  color: #7de8b0;
+}
+.hero-sub {
+  font-size: 15px;
+  color: rgba(255,255,255,0.65);
+  line-height: 1.6;
+  margin-bottom: 0;
+}
+
+.landing-form {
+  width: 100%;
+  padding: 32px 24px 0;
+}
+
+.form-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-bottom: 10px;
+  display: block;
+}
+
+.email-input {
+  width: 100%;
+  padding: 16px 18px;
+  font-size: 16px;
+  font-family: 'Inter', sans-serif;
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  background: var(--white);
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.15s;
+  margin-bottom: 14px;
+}
+.email-input:focus { border-color: var(--green); }
+.email-input::placeholder { color: #bbb; }
+
+.btn-primary {
+  width: 100%;
+  padding: 17px;
+  background: var(--green);
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+  letter-spacing: -0.2px;
+}
+.btn-primary:active { transform: scale(0.98); background: var(--green-dark); }
+
+.btn-secondary {
+  width: 100%;
+  padding: 17px;
+  background: var(--white);
+  color: var(--green);
+  font-size: 15px;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  border: 1.5px solid var(--green);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-secondary:active { background: var(--green-light); }
+
+.landing-note {
+  font-size: 12px;
+  color: var(--muted);
+  text-align: center;
+  margin-top: 14px;
+  line-height: 1.5;
+}
+
+/* ── EMAIL SCREENS (2, 3, 4) ── */
+.email-screen-wrap {
+  width: 100%;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Notification bar at top */
+.notif-bar {
+  width: 100%;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+}
+.notif-bar.orange { background: var(--orange-light); border-bottom-color: rgba(212,101,10,0.15); }
+.notif-bar.red    { background: var(--red-light);    border-bottom-color: rgba(192,49,26,0.15); }
+
+.notif-icon {
+  width: 36px; height: 36px; flex-shrink: 0;
+  border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px;
+}
+.notif-icon.green  { background: var(--green-light); }
+.notif-icon.orange { background: #fde8d0; }
+.notif-icon.red    { background: #fdd8d0; }
+
+.notif-text { flex: 1; }
+.notif-from { font-size: 12px; font-weight: 600; color: var(--muted); }
+.notif-subject { font-size: 13px; font-weight: 500; color: var(--text); margin-top: 1px; }
+
+.notif-time { font-size: 11px; color: var(--muted); flex-shrink: 0; }
+
+/* Step indicator */
+.step-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px 0 8px;
+}
+.step-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: #d0cfc8;
+  transition: all 0.3s;
+}
+.step-dot.active { background: var(--green); width: 24px; border-radius: 4px; }
+.step-dot.done   { background: var(--green); opacity: 0.4; }
+
+/* Email card */
+.email-card {
+  margin: 12px 16px 0;
+  background: var(--white);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+}
+
+.email-header {
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.email-from-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.sender-avatar {
+  width: 34px; height: 34px; flex-shrink: 0;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: white;
+}
+.sender-avatar.green  { background: var(--green); }
+.sender-avatar.orange { background: var(--orange); }
+.sender-avatar.red    { background: var(--red); }
+
+.sender-info { flex: 1; }
+.sender-name { font-size: 13px; font-weight: 600; }
+.sender-email-addr { font-size: 11px; color: var(--muted); }
+.email-time { font-size: 11px; color: var(--muted); }
+
+.email-subject {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--text);
+}
+
+/* Email body */
+.email-body {
+  padding: 20px;
+}
+
+.email-vendor-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+.vendor-logo-placeholder {
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  background: var(--green);
+  display: flex; align-items: center; justify-content: center;
+  color: white;
+  font-size: 16px;
+}
+.vendor-name-small { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+.email-greeting { font-size: 15px; font-weight: 500; margin-bottom: 10px; }
+.email-body-text { font-size: 14px; color: #3a3a36; line-height: 1.65; margin-bottom: 16px; }
+
+.cylinder-card {
+  background: var(--bg);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.cylinder-icon { font-size: 24px; }
+.cylinder-detail { flex: 1; }
+.cylinder-name { font-size: 13px; font-weight: 600; }
+.cylinder-size { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.cylinder-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+.badge-green  { background: var(--green-light);   color: var(--green); }
+.badge-orange { background: var(--orange-light); color: var(--orange); }
+.badge-red    { background: var(--red-light);    color: var(--red); }
+
+.email-cta-btn {
+  display: block;
+  width: 100%;
+  padding: 15px;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+  margin-bottom: 14px;
+  text-decoration: none;
+}
+.cta-green  { background: var(--green);  color: white; }
+.cta-orange { background: var(--orange); color: white; }
+.cta-red    { background: var(--red);    color: white; }
+.email-cta-btn:active { opacity: 0.85; transform: scale(0.98); }
+
+.email-footer-text {
+  font-size: 11px;
+  color: var(--muted);
+  text-align: center;
+  line-height: 1.5;
+}
+
+/* Next step prompt */
+.next-prompt {
+  margin: 16px 16px 0;
+  padding: 16px 18px;
+  background: var(--green-dark);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.next-prompt-text { flex: 1; }
+.next-prompt-label { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; }
+.next-prompt-desc  { font-size: 13px; color: rgba(255,255,255,0.85); line-height: 1.4; }
+.next-arrow-btn {
+  width: 40px; height: 40px; flex-shrink: 0;
+  background: rgba(255,255,255,0.12);
+  border: none;
+  border-radius: 10px;
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s;
+}
+.next-arrow-btn:active { background: rgba(255,255,255,0.22); }
+
+.screen-bottom-btn {
+  padding: 0 16px;
+  margin-top: 16px;
+  width: 100%;
+}
+
+/* ── SCREEN 5: FINAL ── */
+.final-hero {
+  width: 100%;
+  background: var(--green-dark);
+  padding: 52px 28px 44px;
+  text-align: center;
+  color: white;
+}
+.final-tick {
+  width: 64px; height: 64px;
+  background: rgba(255,255,255,0.12);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px;
+  margin: 0 auto 24px;
+}
+.final-title {
+  font-family: 'Lora', serif;
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 1.25;
+  margin-bottom: 12px;
+}
+.final-sub {
+  font-size: 15px;
+  color: rgba(255,255,255,0.65);
+  line-height: 1.6;
+}
+
+.final-summary {
+  width: 100%;
+  padding: 28px 20px 0;
+}
+.summary-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+.summary-row:last-child { border-bottom: none; }
+.summary-num {
+  width: 28px; height: 28px; flex-shrink: 0;
+  background: var(--green);
+  border-radius: 50%;
+  color: white;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+.summary-text { font-size: 14px; color: var(--text); line-height: 1.4; }
+
+.final-cta-wrap {
+  padding: 28px 20px 0;
+  width: 100%;
+}
+
+.btn-whatsapp {
+  width: 100%;
+  padding: 18px;
+  background: #25D366;
+  color: white;
+  font-size: 16px;
+  font-weight: 700;
+  font-family: 'Inter', sans-serif;
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 0.15s;
+  text-decoration: none;
+  margin-bottom: 12px;
+}
+.btn-whatsapp:active { background: #1da851; transform: scale(0.98); }
+
+.wa-icon { font-size: 20px; }
+
+.final-reassure {
+  font-size: 12px;
+  color: var(--muted);
+  text-align: center;
+  line-height: 1.5;
+  padding: 0 20px;
+  margin-top: 16px;
+}
+
+/* Error state */
+.input-error { border-color: var(--red) !important; }
+.error-msg { font-size: 12px; color: var(--red); margin-top: -8px; margin-bottom: 10px; }
+
+</style>
+</head>
+<body>
+
+<!-- ═══════════ SCREEN 1: LANDING ═══════════ -->
+<div class="screen active" id="s1">
+  <div class="landing-hero">
+    <div class="gt-logo">
+      <div class="gt-icon">⬡</div>
+      <div class="gt-name">GasTag</div>
+    </div>
+    <div class="hero-hook">
+      <em>Aaargh, the gas is finished!</em><br>
+      And then they think of you.
+    </div>
+  </div>
+
+  <div class="landing-form">
+    <p style="font-size:15px;line-height:1.65;color:var(--muted);margin-bottom:24px;">
+      Enter your email below and we'll walk you through exactly how GasTag keeps you front of mind at the moment your client needs to reorder.
+    </p>
+
+    <label class="form-label" for="email-input">Your email address</label>
+    <input
+      class="email-input"
+      id="email-input"
+      type="email"
+      placeholder="you@yourcompany.co.za"
+      autocomplete="email"
+      inputmode="email"
+    />
+    <div class="error-msg" id="email-error" style="display:none;">Please enter a valid email address.</div>
+
+    <button class="btn-primary" onclick="startDemo()">
+      Send me the first reminder →
+    </button>
+
+    <p class="landing-note">
+      You'll experience exactly what your clients receive.<br>No sign-up. No obligation. Takes 2 minutes.
+    </p>
+  </div>
+</div>
+
+<!-- ═══════════ SCREEN 2: EMAIL 1 — 6 WEEKS ═══════════ -->
+<div class="screen" id="s2">
+  <div class="notif-bar">
+    <div class="notif-icon green">📧</div>
+    <div class="notif-text">
+      <div class="notif-from">Your Company Gas</div>
+      <div class="notif-subject">Your stove cylinder — 6 weeks to go</div>
+    </div>
+    <div class="notif-time">now</div>
+  </div>
+
+  <div class="step-indicator">
+    <div class="step-dot active" id="dot1a"></div>
+    <div class="step-dot" id="dot2a"></div>
+    <div class="step-dot" id="dot3a"></div>
+  </div>
+
+  <div class="email-card">
+    <div class="email-header">
+      <div class="email-from-row">
+        <div class="sender-avatar green">YC</div>
+        <div class="sender-info">
+          <div class="sender-name">Your Company Gas</div>
+          <div class="sender-email-addr">reminders@yourcompany.co.za</div>
+        </div>
+        <div class="email-time">just now</div>
+      </div>
+      <div class="email-subject">Your stove cylinder — about 6 weeks to go 🟢</div>
+    </div>
+
+    <div class="email-body">
+      <div class="email-vendor-header">
+        <div class="vendor-logo-placeholder">⬡</div>
+        <div>
+          <div class="vendor-name-small">Your Company Name</div>
+        </div>
+      </div>
+
+      <div class="email-greeting">Hi there 👋</div>
+      <div class="email-body-text">
+        Based on your usage history, your stove gas cylinder should last about another <strong>6 weeks</strong>.
+        <br><br>
+        No need to do anything right now — we just wanted to give you plenty of notice so you're never caught without gas.
+      </div>
+
+      <div class="cylinder-card">
+        <div class="cylinder-icon">🔵</div>
+        <div class="cylinder-detail">
+          <div class="cylinder-name">Kitchen Stove</div>
+          <div class="cylinder-size">9kg cylinder</div>
+        </div>
+        <div class="cylinder-badge badge-green">~6 weeks</div>
+      </div>
+
+      <div class="email-body-text">
+        When you're ready to reorder, simply scan the <strong>GasTag keyring</strong> on your gas regulator — it takes less than a minute.
+      </div>
+
+      <div class="email-footer-text">
+        Your Company Gas · Powered by GasTag<br>
+        <span style="color:#bbb;">To update your preferences, visit your account.</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="next-prompt">
+    <div class="next-prompt-text">
+      <div class="next-prompt-label">3 weeks later</div>
+      <div class="next-prompt-desc">Your client gets another reminder — a little more urgent this time.</div>
+    </div>
+    <button class="next-arrow-btn" onclick="goTo('s3')">→</button>
+  </div>
+
+  <div class="screen-bottom-btn">
+    <button class="btn-secondary" onclick="goTo('s3')">Show me the next reminder</button>
+  </div>
+</div>
+
+<!-- ═══════════ SCREEN 3: EMAIL 2 — 3 WEEKS ═══════════ -->
+<div class="screen" id="s3">
+  <div class="notif-bar orange">
+    <div class="notif-icon orange">📧</div>
+    <div class="notif-text">
+      <div class="notif-from">Your Company Gas</div>
+      <div class="notif-subject">Your stove cylinder — 3 weeks to go</div>
+    </div>
+    <div class="notif-time">now</div>
+  </div>
+
+  <div class="step-indicator">
+    <div class="step-dot done"></div>
+    <div class="step-dot active"></div>
+    <div class="step-dot"></div>
+  </div>
+
+  <div class="email-card">
+    <div class="email-header">
+      <div class="email-from-row">
+        <div class="sender-avatar orange">YC</div>
+        <div class="sender-info">
+          <div class="sender-name">Your Company Gas</div>
+          <div class="sender-email-addr">reminders@yourcompany.co.za</div>
+        </div>
+        <div class="email-time">just now</div>
+      </div>
+      <div class="email-subject">Your stove cylinder — about 3 weeks left 🟠</div>
+    </div>
+
+    <div class="email-body">
+      <div class="email-vendor-header">
+        <div class="vendor-logo-placeholder">⬡</div>
+        <div>
+          <div class="vendor-name-small">Your Company Name</div>
+        </div>
+      </div>
+
+      <div class="email-greeting">Hi there,</div>
+      <div class="email-body-text">
+        Just a reminder — your stove cylinder is expected to run low in about <strong>3 weeks</strong>.
+        <br><br>
+        Now's a great time to place your reorder so delivery arrives before you need it.
+      </div>
+
+      <div class="cylinder-card">
+        <div class="cylinder-icon">🟠</div>
+        <div class="cylinder-detail">
+          <div class="cylinder-name">Kitchen Stove</div>
+          <div class="cylinder-size">9kg cylinder</div>
+        </div>
+        <div class="cylinder-badge badge-orange">~3 weeks</div>
+      </div>
+
+      <button class="email-cta-btn cta-orange" onclick="goTo('s4')">
+        Reorder Now — scan or tap here
+      </button>
+
+      <div class="email-footer-text">
+        Your Company Gas · Powered by GasTag<br>
+        <span style="color:#bbb;">To update your preferences, visit your account.</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="next-prompt">
+    <div class="next-prompt-text">
+      <div class="next-prompt-label">3 weeks later</div>
+      <div class="next-prompt-desc">The final reminder — this is the moment of truth.</div>
+    </div>
+    <button class="next-arrow-btn" onclick="goTo('s4')">→</button>
+  </div>
+
+  <div class="screen-bottom-btn">
+    <button class="btn-secondary" onclick="goTo('s4')">Show me the final reminder</button>
+  </div>
+</div>
+
+<!-- ═══════════ SCREEN 4: EMAIL 3 — DUE NOW ═══════════ -->
+<div class="screen" id="s4">
+  <div class="notif-bar red">
+    <div class="notif-icon red">📧</div>
+    <div class="notif-text">
+      <div class="notif-from">Your Company Gas</div>
+      <div class="notif-subject">Your stove cylinder is due now</div>
+    </div>
+    <div class="notif-time">now</div>
+  </div>
+
+  <div class="step-indicator">
+    <div class="step-dot done"></div>
+    <div class="step-dot done"></div>
+    <div class="step-dot active"></div>
+  </div>
+
+  <div class="email-card">
+    <div class="email-header">
+      <div class="email-from-row">
+        <div class="sender-avatar red">YC</div>
+        <div class="sender-info">
+          <div class="sender-name">Your Company Gas</div>
+          <div class="sender-email-addr">reminders@yourcompany.co.za</div>
+        </div>
+        <div class="email-time">just now</div>
+      </div>
+      <div class="email-subject">Your stove cylinder is due now 🔴</div>
+    </div>
+
+    <div class="email-body">
+      <div class="email-vendor-header">
+        <div class="vendor-logo-placeholder">⬡</div>
+        <div>
+          <div class="vendor-name-small">Your Company Name</div>
+        </div>
+      </div>
+
+      <div class="email-greeting">Hi there,</div>
+      <div class="email-body-text">
+        Your stove cylinder is <strong>due for replacement now</strong>.
+        <br><br>
+        Tap the button below to reorder in under a minute — before you're left without gas.
+      </div>
+
+      <div class="cylinder-card">
+        <div class="cylinder-icon">🔴</div>
+        <div class="cylinder-detail">
+          <div class="cylinder-name">Kitchen Stove</div>
+          <div class="cylinder-size">9kg cylinder</div>
+        </div>
+        <div class="cylinder-badge badge-red">Due now</div>
+      </div>
+
+      <button class="email-cta-btn cta-red" onclick="goTo('s5')">
+        Reorder Now — one tap, done ›
+      </button>
+
+      <div class="email-body-text" style="font-size:13px;color:var(--muted);">
+        Your delivery address and cylinder details are already saved — just confirm and we'll handle the rest.
+      </div>
+
+      <div class="email-footer-text">
+        Your Company Gas · Powered by GasTag<br>
+        <span style="color:#bbb;">To update your preferences, visit your account.</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="screen-bottom-btn" style="margin-top:16px;">
+    <button class="btn-primary" onclick="goTo('s5')" style="background:var(--red);">
+      Tap "Reorder Now" to see what happens →
+    </button>
+  </div>
+</div>
+
+<!-- ═══════════ SCREEN 5: FINAL ═══════════ -->
+<div class="screen" id="s5">
+  <div class="final-hero">
+    <div class="gt-logo">
+      <div class="gt-icon">⬡</div>
+      <div class="gt-name">GasTag</div>
+    </div>
+    <div class="final-tick">✓</div>
+    <div class="final-title">Order placed.<br>You got the sale.</div>
+    <div class="final-sub">
+      Three emails. One tap. Your client never calls a competitor.
+    </div>
+  </div>
+
+  <div class="final-summary">
+    <div class="summary-row">
+      <div class="summary-num">1</div>
+      <div class="summary-text">You give your client a branded GasTag keyring when you deliver their cylinder.</div>
+    </div>
+    <div class="summary-row">
+      <div class="summary-num">2</div>
+      <div class="summary-text">GasTag sends them timely reminders as their cylinder runs low — with your branding, every time.</div>
+    </div>
+    <div class="summary-row">
+      <div class="summary-num">3</div>
+      <div class="summary-text">One tap on the reorder button and the order comes straight to you. No phone calls. No competition.</div>
+    </div>
+    <div class="summary-row">
+      <div class="summary-num">4</div>
+      <div class="summary-text">You confirm delivery. GasTag schedules the next set of reminders automatically.</div>
+    </div>
+  </div>
+
+  <div class="final-cta-wrap">
+    <a
+      class="btn-whatsapp"
+      href="https://wa.me/27824993552?text=Hi%20Paul%2C%20I%20just%20watched%20the%20GasTag%20demo%20and%20I%27m%20interested%20in%20finding%20out%20more."
+      target="_blank"
+    >
+      <span class="wa-icon">💬</span>
+      I want this for my business
+    </a>
+
+    <p class="final-reassure">
+      Tapping above opens a WhatsApp chat with Paul directly.<br>
+      No pressure — just a conversation.
+    </p>
+  </div>
+</div>
+
+<script>
+  function goTo(screenId) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    const next = document.getElementById(screenId);
+    next.classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function startDemo() {
+    const input = document.getElementById('email-input');
+    const errorEl = document.getElementById('email-error');
+    const val = input.value.trim();
+    const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
+
+    if (!valid) {
+      input.classList.add('input-error');
+      errorEl.style.display = 'block';
+      input.focus();
+      return;
+    }
+
+    input.classList.remove('input-error');
+    errorEl.style.display = 'none';
+
+    // Store email for personalisation (future use)
+    window._demoEmail = val;
+
+    goTo('s2');
+  }
+
+  // Allow Enter key on email field
+  document.getElementById('email-input').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') startDemo();
+  });
+</script>
+</body>
+</html>

@@ -56,9 +56,10 @@ model Client {
   email                  String
   phone                  String?
   deliveryAddress        String
-  notificationPreference String   @default("both") // email | push | both
-  createdAt              DateTime @default(now())
-  updatedAt              DateTime @updatedAt
+  notificationPreference String    @default("both") // email | push | both
+  incompleteAlertSentAt  DateTime?
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
   qrCode                 QRCode   @relation(fields: [qrCodeId], references: [id])
   vendor                 Vendor   @relation(fields: [vendorId], references: [id])
   appliances             Appliance[]
