@@ -4,7 +4,7 @@ import { sendEmail } from "@/lib/email";
 export const dynamic = "force-dynamic";
 
 const BASE_URL = process.env.APP_BASE_URL ?? "https://gastag.vercel.app";
-const REORDER_URL = `${BASE_URL}/gastag-demo.html#s5`;
+const REORDER_URL = `${BASE_URL}/gastag-demo.html?complete=true`;
 
 function emailContent(step: 1 | 2 | 3): { subject: string; html: string } {
   const banner = (offset: string) =>
