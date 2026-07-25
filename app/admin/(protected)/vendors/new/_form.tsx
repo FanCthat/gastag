@@ -13,7 +13,7 @@ export default function NewVendorForm() {
     region: "",
     whatsapp: "",
   });
-  const [startTrial, setStartTrial] = useState(true);
+  const [startTrial, setStartTrial] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -77,8 +77,8 @@ export default function NewVendorForm() {
           <div>
             <span className="text-sm font-medium text-gray-800">Start 7-day trial</span>
             <p className="text-xs text-gray-500 mt-0.5">
-              Generates 3 demo QR codes and emails them to the vendor with setup instructions.
-              Uncheck if the vendor is going straight to live (payment received, real batch ordered).
+              Tick this to generate 3 demo QR codes and email them to the vendor with setup instructions.
+              Leave unticked if the vendor is going straight to live (payment received, real batch ordered).
             </p>
           </div>
         </label>
