@@ -61,13 +61,15 @@ export async function sendEmail({
 export async function sendNotificationEmail(
   type: string,
   to: string,
-  vars: TemplateVars
+  vars: TemplateVars,
+  prependHtml?: string
 ): Promise<boolean> {
   const tmpl = await prisma.notificationTemplate.findUnique({ where: { type } });
   if (!tmpl) return false;
 
   const subject = tmpl.subject ? interpolate(tmpl.subject, vars) : "GasTag notification";
-  const html = interpolate(tmpl.bodyHtml, vars);
+  const body = interpolate(tmpl.bodyHtml, vars);
+  const html = prependHtml ? prependHtml + body : body;
 
   try {
     await sendEmail({ to, subject, html });

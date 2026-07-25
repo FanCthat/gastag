@@ -4,6 +4,22 @@ import { sendNotificationEmail, sendEscalationEmail } from "@/lib/email";
 
 export const dynamic = "force-dynamic";
 
+const TRIAL_OFFSETS: Record<string, string> = {
+  "6week":   "6 weeks before your cylinder is predicted to run out",
+  "3week":   "3 weeks before your cylinder is predicted to run out",
+  "duedate": "on the day your cylinder is predicted to run out",
+};
+
+function buildTrialBanner(type: string): string {
+  const offset = TRIAL_OFFSETS[type];
+  if (!offset) return "";
+  return `
+    <div style="background:#fff3cd;border-left:4px solid #d4a017;padding:10px 14px;margin-bottom:20px;font-size:12px;color:#5a4500;font-family:sans-serif;line-height:1.6;">
+      🔬 <strong>You're in a GasTag trial.</strong> In live operation this email arrives <strong>${offset}</strong>.
+      Aside from the timing, this is <em>exactly</em> what your real clients will receive.
+    </div>`;
+}
+
 function formatDate(d: Date) {
   return new Date(d).toLocaleDateString("en-ZA", { day: "numeric", month: "long", year: "numeric" });
 }
@@ -23,7 +39,7 @@ export async function GET(req: NextRequest) {
   const due = await prisma.notification.findMany({
     where: { sentAt: null, scheduledFor: { lte: now } },
     include: {
-      client: { select: { id: true, name: true, email: true } },
+      client: { select: { id: true, name: true, email: true, vendor: { select: { isTrial: true } } } },
       appliance: { select: { applianceType: true, cylinderSizeKg: true } },
     },
     orderBy: { scheduledFor: "asc" },
@@ -98,8 +114,9 @@ export async function GET(req: NextRequest) {
     } else {
       if (notif.channel === "email" || notif.channel === "both") {
         try {
-          const ok = await sendNotificationEmail(notif.type, client.email, vars);
-          log.push(`${notif.type}: ${ok ? "sent" : "template missing"} → ${client.email}`);
+          const trialBanner = client.vendor?.isTrial ? buildTrialBanner(notif.type) : undefined;
+          const ok = await sendNotificationEmail(notif.type, client.email, vars, trialBanner);
+          log.push(`${notif.type}: ${ok ? "sent" : "template missing"} → ${client.email}${client.vendor?.isTrial ? " [trial banner]" : ""}`);
         } catch (err: any) {
           log.push(`${notif.type}: FAILED — ${err.message}`);
         }
