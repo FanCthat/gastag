@@ -38,16 +38,19 @@ export async function predictCycle1(
   };
 }
 
-export function predictNextCycle(
+export async function predictNextCycle(
   deliveryDate: Date,
-  completedCycles: { actualDurationMonths: number | null }[]
-): Date {
-  // Exclude cycles shorter than 15 days — these are almost certainly test deliveries
-  // or same-day confirmations and would corrupt the rolling average.
+  completedCycles: { actualDurationMonths: number | null }[],
+  cylinderSizeKg: number
+): Promise<Date> {
+  // Exclude cycles shorter than 15 days — same-day confirmations or test deliveries.
   const durations = completedCycles
     .map(c => c.actualDurationMonths)
     .filter((d): d is number => d !== null && d >= 0.5);
-  if (durations.length === 0) return addMonths(deliveryDate, 3);
+  if (durations.length === 0) {
+    const avg = await getIndustryAverage(cylinderSizeKg);
+    return addMonths(deliveryDate, avg);
+  }
   const rollingAvg = durations.reduce((a, b) => a + b, 0) / durations.length;
   return addMonths(deliveryDate, rollingAvg);
 }

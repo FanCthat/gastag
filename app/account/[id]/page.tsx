@@ -149,7 +149,11 @@ export default async function AccountPage({ params }: { params: Promise<{ id: st
                         : "bg-amber-100 text-amber-700"
                     }`}
                   >
-                    {order.status}
+                    {order.status === "delivered"
+                      ? "Delivered"
+                      : order.status === "confirmed"
+                      ? "Confirmed"
+                      : "Processing"}
                   </span>
                 </div>
               ))}

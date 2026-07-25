@@ -1,3 +1,5 @@
+import RecordDeliveryButton from "./record-delivery-button";
+
 type Appliance = {
   id: string;
   applianceType: string;
@@ -20,14 +22,31 @@ function formatDate(d: Date) {
 }
 
 function daysUntil(d: Date) {
-  const diff = Math.ceil((new Date(d).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-  return diff;
+  return Math.ceil((new Date(d).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+}
+
+function getNextCycle(client: Client) {
+  return client.appliances
+    .flatMap(a => a.cylinderCycles)
+    .sort((a, b) => new Date(a.predictedEmptyDate).getTime() - new Date(b.predictedEmptyDate).getTime())[0];
 }
 
 export default function ClientList({ clients }: { clients: Client[] }) {
   if (clients.length === 0) {
     return <div className="text-center py-16 text-gray-400 text-sm">No registered clients yet.</div>;
   }
+
+  // Sort: overdue first (most overdue at top), then soonest-due, then fine, then no cycle.
+  const sorted = [...clients].sort((a, b) => {
+    const ca = getNextCycle(a);
+    const cb = getNextCycle(b);
+    const dA = ca ? daysUntil(ca.predictedEmptyDate) : null;
+    const dB = cb ? daysUntil(cb.predictedEmptyDate) : null;
+    if (dA === null && dB === null) return 0;
+    if (dA === null) return 1;
+    if (dB === null) return -1;
+    return dA - dB;
+  });
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -41,21 +60,30 @@ export default function ClientList({ clients }: { clients: Client[] }) {
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100">
-          {clients.map((c: Client) => {
+          {sorted.map((c: Client) => {
             const incomplete = c.appliances.length === 0;
-            const nextCycle = c.appliances
-              .flatMap(a => a.cylinderCycles)
-              .sort((a, b) => new Date(a.predictedEmptyDate).getTime() - new Date(b.predictedEmptyDate).getTime())[0];
+            const nextCycle = getNextCycle(c);
             const days = nextCycle ? daysUntil(nextCycle.predictedEmptyDate) : null;
+            const isOverdue = days !== null && days <= 0;
 
             return (
-              <tr key={c.id} className={incomplete ? "bg-amber-50" : ""}>
+              <tr
+                key={c.id}
+                className={
+                  isOverdue ? "bg-red-50" :
+                  incomplete ? "bg-amber-50" : ""
+                }
+              >
                 <td className="px-4 py-3">
                   <div className="font-medium text-gray-900">{c.name}</div>
                   <div className="text-xs text-gray-400">{c.email}</div>
                   {c.phone && (
-                    <a href={`https://wa.me/${c.phone.replace(/\D/g, "")}`} target="_blank" rel="noreferrer"
-                      className="text-xs text-green-600 hover:underline">
+                    <a
+                      href={`https://wa.me/${c.phone.replace(/\D/g, "")}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-xs text-green-600 hover:underline"
+                    >
                       {c.phone}
                     </a>
                   )}
@@ -75,14 +103,13 @@ export default function ClientList({ clients }: { clients: Client[] }) {
                 <td className="px-4 py-3">
                   {nextCycle ? (
                     <div>
-                      <div className={days !== null && days <= 21 ? "text-red-600 font-medium" : "text-gray-700"}>
+                      <div className={isOverdue || (days !== null && days <= 21) ? "text-red-600 font-medium" : "text-gray-700"}>
                         {formatDate(nextCycle.predictedEmptyDate)}
                       </div>
-                      {days !== null && (
-                        <div className="text-xs text-gray-400">
-                          {days <= 0 ? "Overdue" : `${days}d`}
-                        </div>
-                      )}
+                      <div className="text-xs text-gray-400">
+                        {days !== null && (days <= 0 ? "Overdue" : `${days}d`)}
+                      </div>
+                      {isOverdue && <RecordDeliveryButton clientId={c.id} />}
                     </div>
                   ) : (
                     <span className="text-gray-400">—</span>

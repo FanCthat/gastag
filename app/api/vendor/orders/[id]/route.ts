@@ -71,12 +71,17 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         data: { clearedAt: now, clearedByOrderId: orderId },
       });
 
-      const completedCycles = appliance.cylinderCycles.map(c => ({
-        actualDurationMonths: c.actualDurationMonths,
-      }));
-      completedCycles.push({ actualDurationMonths: actualDuration });
+      // Cycle 1 is always partial — the client registered mid-use, so its duration
+      // reflects how much gas was left at registration, not a full cylinder. Only
+      // cycle 2+ are full cylinders and valid baselines for prediction.
+      const completedCycles = appliance.cylinderCycles
+        .filter(c => c.cycleNumber > 1)
+        .map(c => ({ actualDurationMonths: c.actualDurationMonths }));
+      if (cycle.cycleNumber > 1) {
+        completedCycles.push({ actualDurationMonths: actualDuration });
+      }
 
-      const nextEmptyDate = predictNextCycle(now, completedCycles);
+      const nextEmptyDate = await predictNextCycle(now, completedCycles, appliance.cylinderSizeKg);
       const nextCycleNumber = appliance.cylinderCycles.length + 1;
 
       const newCycle = await prisma.cylinderCycle.create({
