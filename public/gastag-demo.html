@@ -426,9 +426,29 @@ body {
 <script>
   var _email = "";
 
-  // Reach screen 5 from the real email CTA (?complete=true)
   (function () {
-    if (new URLSearchParams(window.location.search).get("complete") === "true") {
+    var params = new URLSearchParams(window.location.search);
+
+    // Arrive from a "Receive your next demo email" link inside an email.
+    // The link carries the address and which step to fire next.
+    var trigger = params.get("trigger");
+    var emailParam = params.get("email");
+    if (trigger && emailParam) {
+      _email = emailParam;
+      var step = parseInt(trigger, 10);
+      var targetScreen = step === 2 ? "s3" : "s4";
+      fetch("/api/send-demo-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: _email, step: step }),
+      })
+      .then(function () { goTo(targetScreen); })
+      .catch(function () { goTo(targetScreen); });
+      return;
+    }
+
+    // Arrive from the "Reorder Now" CTA in the final email (?complete=true)
+    if (params.get("complete") === "true") {
       goTo("s5");
     }
   })();

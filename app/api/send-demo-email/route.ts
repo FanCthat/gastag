@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 const BASE_URL = process.env.APP_BASE_URL ?? "https://gastag.vercel.app";
 const REORDER_URL = `${BASE_URL}/gastag-demo.html?complete=true`;
 
-function emailContent(step: 1 | 2 | 3): { subject: string; html: string } {
+function emailContent(step: 1 | 2 | 3, email: string): { subject: string; html: string } {
   const banner = (offset: string) =>
     `<div style="background:#fff3cd;border-left:4px solid #d4a017;padding:10px 14px;margin-bottom:20px;font-size:12px;color:#5a4500;font-family:sans-serif;line-height:1.5;">
       🔬 <strong>DEMO</strong> — in live operation this email arrives ${offset}.
@@ -27,6 +27,7 @@ function emailContent(step: 1 | 2 | 3): { subject: string; html: string } {
     </p>`;
 
   if (step === 1) {
+    const nextUrl = `${BASE_URL}/gastag-demo.html?email=${encodeURIComponent(email)}&trigger=2`;
     return {
       subject: "Your stove cylinder — about 6 weeks to go 🟢",
       html: `
@@ -52,6 +53,12 @@ function emailContent(step: 1 | 2 | 3): { subject: string; html: string } {
                 When you're ready to reorder, simply scan the <strong>GasTag keyring</strong> on your gas regulator — it takes less than a minute.
               </p>
               ${footer}
+              <div style="margin-top:20px;padding-top:16px;border-top:1px solid #eee;text-align:center;">
+                <p style="font-size:11px;color:#aaa;margin-bottom:10px;font-family:sans-serif;">You're in the GasTag demo sequence</p>
+                <a href="${nextUrl}" style="display:inline-block;padding:11px 22px;background:#1a6644;color:#fff;font-size:13px;font-weight:600;border-radius:8px;text-decoration:none;font-family:sans-serif;">
+                  Receive your 3-week reminder →
+                </a>
+              </div>
             </div>
           </div>
         </div>`,
@@ -59,6 +66,7 @@ function emailContent(step: 1 | 2 | 3): { subject: string; html: string } {
   }
 
   if (step === 2) {
+    const nextUrl = `${BASE_URL}/gastag-demo.html?email=${encodeURIComponent(email)}&trigger=3`;
     return {
       subject: "Your stove cylinder — about 3 weeks left 🟠",
       html: `
@@ -82,6 +90,12 @@ function emailContent(step: 1 | 2 | 3): { subject: string; html: string } {
                 Reorder Now — scan or tap here
               </a>
               ${footer}
+              <div style="margin-top:20px;padding-top:16px;border-top:1px solid #eee;text-align:center;">
+                <p style="font-size:11px;color:#aaa;margin-bottom:10px;font-family:sans-serif;">You're in the GasTag demo sequence</p>
+                <a href="${nextUrl}" style="display:inline-block;padding:11px 22px;background:#1a6644;color:#fff;font-size:13px;font-weight:600;border-radius:8px;text-decoration:none;font-family:sans-serif;">
+                  Receive your final reminder →
+                </a>
+              </div>
             </div>
           </div>
         </div>`,
@@ -134,7 +148,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid step." }, { status: 400 });
   }
 
-  const { subject, html } = emailContent(step);
+  const { subject, html } = emailContent(step, email);
 
   try {
     await sendEmail({ to: email, subject, html });
