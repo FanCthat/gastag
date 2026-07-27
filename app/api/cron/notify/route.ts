@@ -5,9 +5,9 @@ import { sendNotificationEmail, sendEscalationEmail } from "@/lib/email";
 export const dynamic = "force-dynamic";
 
 const TRIAL_OFFSETS: Record<string, string> = {
-  "6week":   "6 weeks before your cylinder is predicted to run out",
-  "3week":   "3 weeks before your cylinder is predicted to run out",
-  "duedate": "on the day your cylinder is predicted to run out",
+  "6week":   "6 weeks before their cylinder is predicted to run out",
+  "3week":   "3 weeks before their cylinder is predicted to run out",
+  "duedate": "on the day their cylinder is predicted to run out",
 };
 
 function buildTrialBanner(type: string): string {
@@ -15,7 +15,7 @@ function buildTrialBanner(type: string): string {
   if (!offset) return "";
   return `
     <div style="background:#fff3cd;border-left:4px solid #d4a017;padding:10px 14px;margin-bottom:20px;font-size:12px;color:#5a4500;font-family:sans-serif;line-height:1.6;">
-      🔬 <strong>You're in a GasTag trial.</strong> In live operation this email arrives <strong>${offset}</strong>.
+      🔬 <strong>You're in a GasTag trial.</strong> In live operation this email is received by your clients <strong>${offset}</strong>.
       Aside from the timing, this is <em>exactly</em> what your real clients will receive.
     </div>`;
 }
