@@ -412,18 +412,31 @@ body {
     </div>
 
     <a
+      id="wa-btn"
       class="btn-whatsapp"
-      href="https://wa.me/27824993552?text=Hi%20Paul%2C%20I%20just%20watched%20the%20GasTag%20demo%20and%20I%27m%20interested%20in%20finding%20out%20more."
+      href="#"
       target="_blank"
     >
       <span style="font-size:20px;">💬</span>
       I want this for my business
     </a>
-    <p class="final-reassure">Tapping above opens a WhatsApp chat with Paul directly.<br>No pressure — just a conversation.</p>
+    <p class="final-reassure">Tapping above opens a WhatsApp chat directly.<br>No pressure — just a conversation.</p>
   </div>
 </div>
 
 <script>
+  var owners = {
+    paul:   { number: "27824993552", name: "Paul" },
+    karl:   { number: "27828031747", name: "Karl" },
+    ronnie: { number: "27825793687", name: "Ronnie" },
+  };
+  var _ownerParams = new URLSearchParams(window.location.search);
+  var _ownerKey = (_ownerParams.get("owner") || "paul").toLowerCase();
+  var _owner = owners[_ownerKey] || owners.paul;
+  var _ownerMessage = encodeURIComponent("Hi " + _owner.name + ", I've just been through the GasTag demo and I'd like to know more.");
+  var _waBtn = document.getElementById("wa-btn");
+  if (_waBtn) { _waBtn.href = "https://wa.me/" + _owner.number + "?text=" + _ownerMessage; }
+
   var _email = "";
 
   (function () {
