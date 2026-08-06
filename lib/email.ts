@@ -47,7 +47,7 @@ export async function sendEmail({
   const isGuarded = guardedTo !== to;
   const guardedSubject = isGuarded ? `[GUARD → ${to}] ${subject}` : subject;
 
-  await getResend().emails.send({
+  const { error } = await getResend().emails.send({
     from,
     to: guardedTo,
     subject: guardedSubject,
@@ -56,6 +56,9 @@ export async function sendEmail({
     ...(cc && !isGuarded ? { cc } : {}),
     ...(attachments ? { attachments } : {}),
   });
+  if (error) {
+    throw new Error(`Resend error: ${error.message ?? JSON.stringify(error)}`);
+  }
 }
 
 export async function sendNotificationEmail(
