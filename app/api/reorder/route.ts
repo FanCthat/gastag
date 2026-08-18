@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { sendEmail } from "@/lib/email";
+import { getVendorDataKey, resolveCylinderSize } from "@/lib/client-crypto";
 
 const FROM = "GasTag <noreply@mobwatch.co.za>";
 
@@ -17,7 +18,7 @@ export async function POST(req: NextRequest) {
   const client = await prisma.client.findUnique({
     where: { id: clientId },
     include: {
-      vendor: { select: { name: true, contactEmail: true, contactEmail2: true, isActive: true } },
+      vendor: { select: { name: true, contactEmail: true, contactEmail2: true, isActive: true, encryptionOn: true, wrappedDataKey: true } },
       appliances: {
         where: { id: { in: applianceIds }, isActive: true },
         include: {
@@ -68,8 +69,12 @@ export async function POST(req: NextRequest) {
     return order;
   });
 
+  const dataKey = (client.vendor.encryptionOn && client.vendor.wrappedDataKey)
+    ? getVendorDataKey(client.vendor.wrappedDataKey)
+    : null;
+
   const applianceLines = client.appliances
-    .map(a => `• ${a.cylinderSizeKg}kg — ${a.applianceType}`)
+    .map(a => `• ${resolveCylinderSize(a.cylinderSizeKg, a.cylinderSizeEnc ?? null, dataKey)}kg — ${a.applianceType}`)
     .join("<br/>");
 
   const dashboardUrl = `${process.env.APP_BASE_URL}/vendor/dashboard`;

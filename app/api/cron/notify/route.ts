@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { sendNotificationEmail, sendEscalationEmail } from "@/lib/email";
+import { getVendorDataKey, resolveCylinderSize } from "@/lib/client-crypto";
 
 export const dynamic = "force-dynamic";
 
@@ -39,8 +40,8 @@ export async function GET(req: NextRequest) {
   const due = await prisma.notification.findMany({
     where: { sentAt: null, scheduledFor: { lte: now } },
     include: {
-      client: { select: { id: true, name: true, email: true, vendor: { select: { isTrial: true } } } },
-      appliance: { select: { applianceType: true, cylinderSizeKg: true } },
+      client: { select: { id: true, name: true, email: true, vendor: { select: { isTrial: true, encryptionOn: true, wrappedDataKey: true } } } },
+      appliance: { select: { applianceType: true, cylinderSizeKg: true, cylinderSizeEnc: true } },
     },
     orderBy: { scheduledFor: "asc" },
     take: 200,
@@ -63,11 +64,14 @@ export async function GET(req: NextRequest) {
     });
 
     const reorderUrl = `${process.env.APP_BASE_URL}/reorder/${client.id ?? ""}`;
+    const dataKey = (client.vendor?.encryptionOn && client.vendor?.wrappedDataKey)
+      ? getVendorDataKey(client.vendor.wrappedDataKey)
+      : null;
     const vars = {
       clientName: client.name,
       clientEmail: client.email,
       applianceType: appliance.applianceType,
-      cylinderSizeKg: String(appliance.cylinderSizeKg),
+      cylinderSizeKg: String(resolveCylinderSize(appliance.cylinderSizeKg, appliance.cylinderSizeEnc ?? null, dataKey)),
       predictedEmptyDate: cycle ? formatDate(cycle.predictedEmptyDate) : "soon",
       reorderUrl,
       daysOverdue: cycle
