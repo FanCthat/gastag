@@ -83,7 +83,7 @@ model Appliance {
   id                            String   @id @default(cuid())
   clientId                      String
   applianceType                 String   // stove | geyser | braai | patio_heater | other
-  cylinderSizeKg                Float    // used for non-encrypted vendors; null for encrypted vendors
+  cylinderSizeKg                Float?   // null for encrypted vendors; populated for non-encrypted (GasSA)
   cylinderSizeEnc               String?  // encrypted cylinder size string; used when vendor.encryptionOn = true
   clientEstimatedDurationMonths Float?
   isActive                      Boolean  @default(true)

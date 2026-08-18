@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth-options";
 import { prisma } from "@/lib/db";
 import { predictNextCycle, calcActualDurationMonths } from "@/lib/prediction";
 import { scheduleNotificationsForCycle, cancelPendingNotificationsForCycle } from "@/lib/notifications";
+import { getVendorDataKey, resolveCylinderSize } from "@/lib/client-crypto";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ clientId: string }> }) {
   const session = await getServerSession(authOptions);
@@ -12,10 +13,14 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ cli
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const vendor = await prisma.vendor.findUnique({ where: { id: vendorId }, select: { isActive: true } });
+  const vendor = await prisma.vendor.findUnique({ where: { id: vendorId }, select: { isActive: true, encryptionOn: true, wrappedDataKey: true } });
   if (!vendor?.isActive) {
     return NextResponse.json({ error: "Vendor account is not active." }, { status: 403 });
   }
+
+  const dataKey = (vendor.encryptionOn && vendor.wrappedDataKey)
+    ? getVendorDataKey(vendor.wrappedDataKey)
+    : null;
 
   const { clientId } = await params;
 
@@ -69,7 +74,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ cli
     });
     const completedCycles = pastCycles.map(c => ({ actualDurationMonths: c.actualDurationMonths }));
 
-    const nextEmptyDate = await predictNextCycle(now, completedCycles, appliance.cylinderSizeKg);
+    const nextEmptyDate = await predictNextCycle(now, completedCycles, resolveCylinderSize(appliance.cylinderSizeKg, appliance.cylinderSizeEnc ?? null, dataKey));
 
     const cycleCount = await prisma.cylinderCycle.count({ where: { applianceId: appliance.id } });
 
