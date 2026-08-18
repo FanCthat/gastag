@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { Resend } from "resend";
 import Link from "next/link";
+import { getVendorDataKey, resolveField } from "@/lib/client-crypto";
 
 const FROM = "GasTag <noreply@mobwatch.co.za>";
 const baseUrl = process.env.APP_BASE_URL || "https://gastag.vercel.app";
@@ -17,10 +18,16 @@ export default async function DemoNextEmailPage({
 
   const client = await prisma.client.findUnique({
     where: { id: clientId },
-    select: { id: true, name: true, email: true, vendor: { select: { isDemo: true } } },
+    select: { id: true, name: true, nameEnc: true, email: true, emailEnc: true, vendor: { select: { isDemo: true, encryptionOn: true, wrappedDataKey: true } } },
   });
 
   if (!client) notFound();
+
+  const dataKey = (client.vendor.encryptionOn && client.vendor.wrappedDataKey)
+    ? getVendorDataKey(client.vendor.wrappedDataKey)
+    : null;
+  const clientName  = resolveField(client.nameEnc,  client.name,  dataKey);
+  const clientEmail = resolveField(client.emailEnc, client.email, dataKey);
 
   if (!client.vendor.isDemo) {
     return (
@@ -53,7 +60,7 @@ export default async function DemoNextEmailPage({
       const resend = new Resend(process.env.RESEND_API_KEY!);
       await resend.emails.send({
         from: FROM,
-        to: client.email,
+        to: clientEmail,
         subject: `🔬 DEMO — Running low, 3 weeks to empty`,
         html: `
           <div style="font-family:sans-serif;max-width:560px;margin:0 auto;">
@@ -61,7 +68,7 @@ export default async function DemoNextEmailPage({
               🔬 DEMO MODE
             </div>
             <div style="background:white;padding:28px 24px;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 8px 8px;">
-              <h2 style="color:#111827;margin:0 0 12px;">Running low — time to arrange a refill, ${client.name.split(" ")[0]}</h2>
+              <h2 style="color:#111827;margin:0 0 12px;">Running low — time to arrange a refill, ${clientName.split(" ")[0]}</h2>
               <p style="color:#374151;margin:0 0 12px;">Your cylinder is getting low. Don't wait until you've run out — arrange your refill now and we'll deliver before you need it.</p>
               <p style="color:#374151;margin:0 0 20px;">When you're ready, simply <strong>scan the QR code on your keyring</strong> — it takes you straight to your order page. No app, no login needed.</p>
               <div style="margin-top:24px;padding-top:20px;border-top:1px solid #e5e7eb;">
@@ -95,7 +102,7 @@ export default async function DemoNextEmailPage({
       const resend = new Resend(process.env.RESEND_API_KEY!);
       await resend.emails.send({
         from: FROM,
-        to: client.email,
+        to: clientEmail,
         subject: `🔬 DEMO — Your cylinder is predicted empty today`,
         html: `
           <div style="font-family:sans-serif;max-width:560px;margin:0 auto;">
@@ -103,7 +110,7 @@ export default async function DemoNextEmailPage({
               🔬 DEMO MODE
             </div>
             <div style="background:white;padding:28px 24px;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 8px 8px;">
-              <h2 style="color:#111827;margin:0 0 12px;">Your cylinder is predicted empty today, ${client.name.split(" ")[0]}</h2>
+              <h2 style="color:#111827;margin:0 0 12px;">Your cylinder is predicted empty today, ${clientName.split(" ")[0]}</h2>
               <p style="color:#374151;margin:0 0 12px;">Based on your usage, your cylinder should be empty around now. If you haven't ordered yet — now's the time!</p>
               <p style="color:#374151;margin:0 0 20px;">In real life, your customer would scan the QR code on their keyring to reorder. In this demo, tap the button below to experience the order process:</p>
               <a href="${reorderUrl}" style="background:#f97316;color:white;padding:12px 28px;border-radius:8px;text-decoration:none;display:inline-block;font-weight:bold;margin:0 0 20px;">Order gas now →</a>
@@ -174,7 +181,7 @@ export default async function DemoNextEmailPage({
               Email {emailNumber} of 3 sent!
             </h1>
             <p className="text-sm text-gray-600">
-              Check your inbox at <strong>{client.email}</strong> — it should arrive within a minute.
+              Check your inbox at <strong>{clientEmail}</strong> — it should arrive within a minute.
               {emailNumber === 2 && " (Check your spam folder if you don't see it.)"}
             </p>
             <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-600 text-left">

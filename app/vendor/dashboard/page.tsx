@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth-options";
 import { prisma } from "@/lib/db";
-import { getVendorDataKey, resolveCylinderSize } from "@/lib/client-crypto";
+import { getVendorDataKey, resolveField, resolveCylinderSize } from "@/lib/client-crypto";
 import VendorNav from "./_components/nav";
 import PendingOrders from "./_components/pending-orders";
 import ClientList from "./_components/client-list";
@@ -21,7 +21,7 @@ export default async function VendorDashboard({ searchParams }: { searchParams: 
       where: { vendorId, status: "pending" },
       orderBy: { placedAt: "desc" },
       include: {
-        client: { select: { name: true, email: true, phone: true, deliveryAddress: true } },
+        client: { select: { name: true, nameEnc: true, email: true, emailEnc: true, phone: true, phoneEnc: true, deliveryAddress: true, deliveryAddressEnc: true } },
         orderItems: {
           include: {
             appliance: { select: { applianceType: true, cylinderSizeKg: true, cylinderSizeEnc: true } },
@@ -53,6 +53,15 @@ export default async function VendorDashboard({ searchParams }: { searchParams: 
 
   const resolvedOrders = pendingOrders.map(order => ({
     ...order,
+    client: {
+      ...order.client,
+      name:            resolveField(order.client.nameEnc,            order.client.name,            dataKey),
+      email:           resolveField(order.client.emailEnc,           order.client.email,           dataKey),
+      phone:           order.client.phoneEnc
+                         ? resolveField(order.client.phoneEnc, order.client.phone, dataKey)
+                         : (order.client.phone ?? null),
+      deliveryAddress: resolveField(order.client.deliveryAddressEnc, order.client.deliveryAddress, dataKey),
+    },
     orderItems: order.orderItems.map(item => ({
       ...item,
       appliance: {
@@ -64,6 +73,12 @@ export default async function VendorDashboard({ searchParams }: { searchParams: 
 
   const resolvedClients = clients.map(client => ({
     ...client,
+    name:            resolveField(client.nameEnc,            client.name,            dataKey),
+    email:           resolveField(client.emailEnc,           client.email,           dataKey),
+    phone:           client.phoneEnc
+                       ? resolveField(client.phoneEnc, client.phone, dataKey)
+                       : (client.phone ?? null),
+    deliveryAddress: resolveField(client.deliveryAddressEnc, client.deliveryAddress, dataKey),
     appliances: client.appliances.map(a => ({
       ...a,
       cylinderSizeKg: resolveCylinderSize(a.cylinderSizeKg, a.cylinderSizeEnc ?? null, dataKey),
@@ -87,7 +102,7 @@ export default async function VendorDashboard({ searchParams }: { searchParams: 
           </div>
         )}
         {tab === "orders" && <PendingOrders orders={resolvedOrders} vendorId={vendorId} />}
-        {tab === "clients" && <ClientList clients={resolvedClients} />}
+        {tab === "clients" && <ClientList clients={resolvedClients} encryptionOn={vendor?.encryptionOn ?? false} />}
         {tab === "specials" && (
           <BroadcastForm
             clients={resolvedClients.map(c => ({ id: c.id, name: c.name, email: c.email }))}

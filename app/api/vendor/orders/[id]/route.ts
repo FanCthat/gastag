@@ -5,7 +5,7 @@ import { prisma } from "@/lib/db";
 import { predictNextCycle, calcActualDurationMonths } from "@/lib/prediction";
 import { scheduleNotificationsForCycle, cancelPendingNotificationsForCycle } from "@/lib/notifications";
 import { sendEmail } from "@/lib/email";
-import { getVendorDataKey, resolveCylinderSize } from "@/lib/client-crypto";
+import { getVendorDataKey, resolveField, resolveCylinderSize } from "@/lib/client-crypto";
 
 const FROM = "GasTag <noreply@mobwatch.co.za>";
 
@@ -106,6 +106,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       nextDates.push({ applianceType: appliance.applianceType, cylinderSizeKg: resolvedKg, nextEmptyDate });
     }
 
+    const clientName  = resolveField(order.client.nameEnc,  order.client.name,  dataKey);
+    const clientEmail = resolveField(order.client.emailEnc, order.client.email, dataKey);
+
     const accountUrl = `${process.env.APP_BASE_URL}/account/${order.clientId}`;
     const cylinderLines = nextDates
       .map(d => `<li><strong>${d.cylinderSizeKg}kg ${d.applianceType.replace("_", " ")}</strong> — next predicted empty: <strong>${formatDate(d.nextEmptyDate)}</strong></li>`)
@@ -121,11 +124,11 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
     try {
       await sendEmail({
-        to: order.client.email,
+        to: clientEmail,
         subject: emailSubject,
         from: FROM,
         html: `
-          <p>Hi ${order.client.name.split(" ")[0]},</p>
+          <p>Hi ${clientName.split(" ")[0]},</p>
           <p>${emailIntro}</p>
           <ul>${cylinderLines}</ul>
           <p>We'll send you reminders well before each cylinder runs out, so you're never caught without gas.</p>

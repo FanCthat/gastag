@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(* /Users/paulonogueira/wardwatch/*)",
+      "Write(/Users/paulonogueira/wardwatch/*)",
+      "Edit(/Users/paulonogueira/wardwatch/*)",
+      "Read(/Users/paulonogueira/wardwatch/*)"
+    ]
+  }
+}

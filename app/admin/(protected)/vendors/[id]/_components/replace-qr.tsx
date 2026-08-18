@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-type Client = { id: string; name: string; email: string };
+type Client = { id: string; name: string | null; email: string | null };
 type UnregisteredQR = { id: string };
 
 export default function ReplaceQR({ clients, unregisteredQRs }: { clients: Client[]; unregisteredQRs: UnregisteredQR[] }) {
@@ -52,7 +52,7 @@ export default function ReplaceQR({ clients, unregisteredQRs }: { clients: Clien
             >
               <option value="">Select client…</option>
               {clients.map(c => (
-                <option key={c.id} value={c.id}>{c.name} ({c.email})</option>
+                <option key={c.id} value={c.id}>{c.name ?? "[encrypted]"} ({c.email ?? "encrypted"})</option>
               ))}
             </select>
           </div>

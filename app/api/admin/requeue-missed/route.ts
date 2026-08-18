@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getVendorDataKey, resolveField } from "@/lib/client-crypto";
 
 export const dynamic = "force-dynamic";
 
@@ -38,9 +39,9 @@ export async function GET(req: NextRequest) {
         select: {
           id: true,
           name: true,
-          email: true,
+          nameEnc: true,
           notificationPreference: true,
-          vendor: { select: { isActive: true } },
+          vendor: { select: { isActive: true, encryptionOn: true, wrappedDataKey: true } },
         },
       },
       cylinderCycles: {
@@ -60,6 +61,10 @@ export async function GET(req: NextRequest) {
     if (!appliance.client.vendor.isActive) continue;
 
     const { client } = appliance;
+    const dataKey = (client.vendor.encryptionOn && client.vendor.wrappedDataKey)
+      ? getVendorDataKey(client.vendor.wrappedDataKey)
+      : null;
+    const clientName = resolveField(client.nameEnc, client.name, dataKey);
     const daysUntilEmpty = Math.ceil(
       (new Date(cycle.predictedEmptyDate).getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
     );
@@ -72,7 +77,7 @@ export async function GET(req: NextRequest) {
     } else if (daysUntilEmpty <= 42) {
       neededTypes.push("6week");
     } else {
-      log.push(`${client.name} (${appliance.applianceType}): ${daysUntilEmpty}d away — skip`);
+      log.push(`${clientName} (${appliance.applianceType}): ${daysUntilEmpty}d away — skip`);
       continue;
     }
 
@@ -82,11 +87,11 @@ export async function GET(req: NextRequest) {
       const hasSent = notifs.some(n => n.sentAt !== null);
 
       if (hasUnsent) {
-        log.push(`${client.name} / ${type}: already unsent in queue — skip`);
+        log.push(`${clientName} / ${type}: already unsent in queue — skip`);
         continue;
       }
       if (!hasSent) {
-        log.push(`${client.name} / ${type}: no prior notification found — skip`);
+        log.push(`${clientName} / ${type}: no prior notification found — skip`);
         continue;
       }
 
@@ -105,7 +110,7 @@ export async function GET(req: NextRequest) {
         },
       });
       queued++;
-      log.push(`${client.name} (${appliance.applianceType}) / ${type}: QUEUED (${daysUntilEmpty}d until empty)`);
+      log.push(`${clientName} (${appliance.applianceType}) / ${type}: QUEUED (${daysUntilEmpty}d until empty)`);
     }
   }
 

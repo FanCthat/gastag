@@ -60,10 +60,15 @@ model Client {
   id                     String   @id @default(cuid())
   qrCodeId               String   @unique
   vendorId               String
-  name                   String
-  email                  String
+  name                   String?  // null for encrypted vendors; plaintext for GasSA
+  nameEnc                String?  // encrypted name
+  email                  String?  // null for encrypted vendors; plaintext for GasSA
+  emailEnc               String?  // encrypted email
+  emailHash              String?  // sha256(email) for lookup when email is encrypted
   phone                  String?
-  deliveryAddress        String
+  phoneEnc               String?  // encrypted phone
+  deliveryAddress        String?  // null for encrypted vendors; plaintext for GasSA
+  deliveryAddressEnc     String?  // encrypted delivery address
   notificationPreference String    @default("both") // email | push | both
   incompleteAlertSentAt  DateTime?
   createdAt              DateTime  @default(now())
@@ -77,6 +82,7 @@ model Client {
 
   @@index([vendorId])
   @@index([email])
+  @@index([emailHash])
 }
 
 model Appliance {

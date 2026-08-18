@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { sendEmail } from "@/lib/email";
-import { getVendorDataKey, resolveCylinderSize } from "@/lib/client-crypto";
+import { getVendorDataKey, encryptField, resolveField, resolveCylinderSize } from "@/lib/client-crypto";
 
 const FROM = "GasTag <noreply@mobwatch.co.za>";
 
@@ -44,6 +44,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "No active cycles found for selected appliances." }, { status: 400 });
   }
 
+  const dataKey = (client.vendor.encryptionOn && client.vendor.wrappedDataKey)
+    ? getVendorDataKey(client.vendor.wrappedDataKey)
+    : null;
+
   await prisma.$transaction(async tx => {
     const order = await tx.order.create({
       data: {
@@ -63,16 +67,18 @@ export async function POST(req: NextRequest) {
     });
 
     if (fulfilmentType === "delivery" && addressIsPermanentChange) {
-      await tx.client.update({ where: { id: clientId }, data: { deliveryAddress } });
+      await tx.client.update({
+        where: { id: clientId },
+        data: dataKey
+          ? { deliveryAddress: null, deliveryAddressEnc: encryptField(deliveryAddress, dataKey) }
+          : { deliveryAddress },
+      });
     }
 
     return order;
   });
 
-  const dataKey = (client.vendor.encryptionOn && client.vendor.wrappedDataKey)
-    ? getVendorDataKey(client.vendor.wrappedDataKey)
-    : null;
-
+  const clientName    = resolveField(client.nameEnc,            client.name,            dataKey);
   const applianceLines = client.appliances
     .map(a => `• ${resolveCylinderSize(a.cylinderSizeKg, a.cylinderSizeEnc ?? null, dataKey)}kg — ${a.applianceType}`)
     .join("<br/>");
@@ -89,11 +95,11 @@ export async function POST(req: NextRequest) {
     await sendEmail({
       to: client.vendor.contactEmail,
       subject: isCollection
-        ? `New in-store collection request from ${client.name}`
-        : `New gas order from ${client.name}`,
+        ? `New in-store collection request from ${clientName}`
+        : `New gas order from ${clientName}`,
       html: `
         <p>Hi ${client.vendor.name},</p>
-        <p><strong>${client.name}</strong> has placed a gas ${isCollection ? "collection request" : "order"}.</p>
+        <p><strong>${clientName}</strong> has placed a gas ${isCollection ? "collection request" : "order"}.</p>
         <p><strong>Cylinders:</strong><br/>${applianceLines}</p>
         ${fulfilmentLine}
         <p><a href="${dashboardUrl}" style="background:#f97316;color:white;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:600;display:inline-block;margin-top:8px">View order in portal →</a></p>

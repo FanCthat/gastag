@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { sendNotificationEmail, sendEscalationEmail } from "@/lib/email";
-import { getVendorDataKey, resolveCylinderSize } from "@/lib/client-crypto";
+import { getVendorDataKey, resolveField, resolveCylinderSize } from "@/lib/client-crypto";
 
 export const dynamic = "force-dynamic";
 
@@ -40,7 +40,7 @@ export async function GET(req: NextRequest) {
   const due = await prisma.notification.findMany({
     where: { sentAt: null, scheduledFor: { lte: now } },
     include: {
-      client: { select: { id: true, name: true, email: true, vendor: { select: { isTrial: true, encryptionOn: true, wrappedDataKey: true } } } },
+      client: { select: { id: true, name: true, nameEnc: true, email: true, emailEnc: true, vendor: { select: { isTrial: true, encryptionOn: true, wrappedDataKey: true } } } },
       appliance: { select: { applianceType: true, cylinderSizeKg: true, cylinderSizeEnc: true } },
     },
     orderBy: { scheduledFor: "asc" },
@@ -67,9 +67,11 @@ export async function GET(req: NextRequest) {
     const dataKey = (client.vendor?.encryptionOn && client.vendor?.wrappedDataKey)
       ? getVendorDataKey(client.vendor.wrappedDataKey)
       : null;
+    const clientName  = resolveField(client.nameEnc,  client.name,  dataKey);
+    const clientEmail = resolveField(client.emailEnc, client.email, dataKey);
     const vars = {
-      clientName: client.name,
-      clientEmail: client.email,
+      clientName,
+      clientEmail,
       applianceType: appliance.applianceType,
       cylinderSizeKg: String(resolveCylinderSize(appliance.cylinderSizeKg, appliance.cylinderSizeEnc ?? null, dataKey)),
       predictedEmptyDate: cycle ? formatDate(cycle.predictedEmptyDate) : "soon",
@@ -119,8 +121,8 @@ export async function GET(req: NextRequest) {
       if (notif.channel === "email" || notif.channel === "both") {
         try {
           const trialBanner = client.vendor?.isTrial ? buildTrialBanner(notif.type) : undefined;
-          const ok = await sendNotificationEmail(notif.type, client.email, vars, trialBanner);
-          log.push(`${notif.type}: ${ok ? "sent" : "template missing"} → ${client.email}${client.vendor?.isTrial ? " [trial banner]" : ""}`);
+          const ok = await sendNotificationEmail(notif.type, clientEmail, vars, trialBanner);
+          log.push(`${notif.type}: ${ok ? "sent" : "template missing"} → ${clientEmail}${client.vendor?.isTrial ? " [trial banner]" : ""}`);
         } catch (err: any) {
           log.push(`${notif.type}: FAILED — ${err.message}`);
         }

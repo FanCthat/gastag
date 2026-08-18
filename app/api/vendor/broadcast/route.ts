@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth-options";
 import { prisma } from "@/lib/db";
 import { sendEmail } from "@/lib/email";
+import { getVendorDataKey, resolveField } from "@/lib/client-crypto";
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -21,14 +22,18 @@ export async function POST(req: NextRequest) {
 
   const vendor = await prisma.vendor.findUnique({
     where: { id: vendorId },
-    select: { name: true, logoUrl: true, isActive: true },
+    select: { name: true, logoUrl: true, isActive: true, encryptionOn: true, wrappedDataKey: true },
   });
   if (!vendor) return NextResponse.json({ error: "Vendor not found." }, { status: 404 });
   if (!vendor.isActive) return NextResponse.json({ error: "Vendor account is not active." }, { status: 403 });
 
+  const dataKey = (vendor.encryptionOn && vendor.wrappedDataKey)
+    ? getVendorDataKey(vendor.wrappedDataKey)
+    : null;
+
   const clients = await prisma.client.findMany({
     where: { vendorId, id: { in: clientIds } },
-    select: { id: true, email: true, name: true },
+    select: { id: true, name: true, nameEnc: true, email: true, emailEnc: true },
   });
 
   if (clients.length === 0) {
@@ -51,6 +56,8 @@ export async function POST(req: NextRequest) {
   let failed = 0;
 
   for (const client of clients) {
+    const clientName  = resolveField(client.nameEnc,  client.name,  dataKey);
+    const clientEmail = resolveField(client.emailEnc, client.email, dataKey);
     const reorderUrl = `${baseUrl}/reorder/${client.id}`;
     const html = `
       <div style="max-width:600px;margin:0 auto;font-family:Arial,sans-serif;color:#1a1a1a;">
@@ -66,7 +73,7 @@ export async function POST(req: NextRequest) {
       </div>
     `;
     try {
-      await sendEmail({ to: client.email, subject: subject.trim(), html });
+      await sendEmail({ to: clientEmail, subject: subject.trim(), html });
       sent++;
     } catch {
       failed++;
