@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db";
 import { predictNextCycle, calcActualDurationMonths } from "@/lib/prediction";
 import { scheduleNotificationsForCycle, cancelPendingNotificationsForCycle } from "@/lib/notifications";
 import { sendEmail } from "@/lib/email";
+import { getVendorDataKey, resolveCylinderSize } from "@/lib/client-crypto";
 
 const FROM = "GasTag <noreply@mobwatch.co.za>";
 
@@ -19,10 +20,14 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const vendor = await prisma.vendor.findUnique({ where: { id: vendorId }, select: { isActive: true } });
+  const vendor = await prisma.vendor.findUnique({ where: { id: vendorId }, select: { isActive: true, encryptionOn: true, wrappedDataKey: true } });
   if (!vendor?.isActive) {
     return NextResponse.json({ error: "Vendor account is not active." }, { status: 403 });
   }
+
+  const dataKey = (vendor.encryptionOn && vendor.wrappedDataKey)
+    ? getVendorDataKey(vendor.wrappedDataKey)
+    : null;
 
   const { id: orderId } = await params;
   const { status } = await req.json();
@@ -81,7 +86,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         completedCycles.push({ actualDurationMonths: actualDuration });
       }
 
-      const nextEmptyDate = await predictNextCycle(now, completedCycles, appliance.cylinderSizeKg);
+      const resolvedKg = resolveCylinderSize(appliance.cylinderSizeKg, appliance.cylinderSizeEnc ?? null, dataKey);
+      const nextEmptyDate = await predictNextCycle(now, completedCycles, resolvedKg);
       const nextCycleNumber = appliance.cylinderCycles.length + 1;
 
       const newCycle = await prisma.cylinderCycle.create({
@@ -97,7 +103,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         order.clientId, appliance.id, newCycle.id, nextEmptyDate, order.client.notificationPreference
       );
 
-      nextDates.push({ applianceType: appliance.applianceType, cylinderSizeKg: appliance.cylinderSizeKg, nextEmptyDate });
+      nextDates.push({ applianceType: appliance.applianceType, cylinderSizeKg: resolvedKg, nextEmptyDate });
     }
 
     const accountUrl = `${process.env.APP_BASE_URL}/account/${order.clientId}`;

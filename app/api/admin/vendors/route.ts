@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth-options";
 import { prisma } from "@/lib/db";
 import { sendEmail } from "@/lib/email";
+import { generateKey, wrapKey, hashKey } from "@/lib/encryption";
 import bcrypt from "bcryptjs";
 import QRCode from "qrcode";
 
@@ -42,6 +43,14 @@ export async function POST(req: NextRequest) {
   const hash = await bcrypt.hash(password, 12);
   const now = new Date();
 
+  // Generate a unique AES-256-GCM data key for this vendor and wrap it with MASTER_KEY.
+  // Every new vendor gets encryption_on = true by default (schema default).
+  const masterKey = process.env.MASTER_KEY;
+  if (!masterKey) throw new Error("MASTER_KEY env var is not set — cannot create vendor");
+  const dataKey = generateKey();
+  const wrappedDataKey = wrapKey(dataKey, masterKey);
+  const keyHash = hashKey(dataKey);
+
   const vendor = await prisma.vendor.create({
     data: {
       name,
@@ -50,6 +59,9 @@ export async function POST(req: NextRequest) {
       password: hash,
       region: region || null,
       whatsapp: whatsapp || null,
+      encryptionOn: true,
+      wrappedDataKey,
+      keyHash,
       ...(startTrial ? {
         isTrial: true,
         trialStartedAt: now,

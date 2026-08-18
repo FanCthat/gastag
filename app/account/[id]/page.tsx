@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { getVendorDataKey, resolveCylinderSize } from "@/lib/client-crypto";
 import DeleteCylinderButton from "./_components/delete-cylinder-button";
 import EditProfileForm from "./_components/edit-profile-form";
 
@@ -24,7 +25,7 @@ export default async function AccountPage({ params }: { params: Promise<{ id: st
   const client = await prisma.client.findUnique({
     where: { id: clientId },
     include: {
-      vendor: { select: { name: true } },
+      vendor: { select: { name: true, encryptionOn: true, wrappedDataKey: true } },
       appliances: {
         where: { isActive: true },
         orderBy: { createdAt: "asc" },
@@ -44,7 +45,16 @@ export default async function AccountPage({ params }: { params: Promise<{ id: st
 
   if (!client) notFound();
 
-  const hasActiveAppliances = client.appliances.some(a => a.cylinderCycles.length > 0);
+  const dataKey = (client.vendor.encryptionOn && client.vendor.wrappedDataKey)
+    ? getVendorDataKey(client.vendor.wrappedDataKey)
+    : null;
+
+  const appliances = client.appliances.map(a => ({
+    ...a,
+    cylinderSizeKg: resolveCylinderSize(a.cylinderSizeKg, a.cylinderSizeEnc ?? null, dataKey),
+  }));
+
+  const hasActiveAppliances = appliances.some(a => a.cylinderCycles.length > 0);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -56,14 +66,14 @@ export default async function AccountPage({ params }: { params: Promise<{ id: st
         </div>
 
         {/* Cylinders */}
-        {client.appliances.length === 0 ? (
+        {appliances.length === 0 ? (
           <div className="bg-white rounded-xl border border-gray-200 p-6 text-sm text-gray-400 text-center">
             No appliances registered yet.
           </div>
         ) : (
           <div className="space-y-3">
             <h2 className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Your cylinders</h2>
-            {client.appliances.map(appliance => {
+            {appliances.map(appliance => {
               const cycle = appliance.cylinderCycles[0];
               const days = cycle ? daysUntil(cycle.predictedEmptyDate) : null;
               const badge = days !== null ? statusBadge(days) : null;

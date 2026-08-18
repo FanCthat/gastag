@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { predictCycle1 } from "@/lib/prediction";
 import { scheduleNotificationsForCycle } from "@/lib/notifications";
 import { sendEmail } from "@/lib/email";
+import { getVendorDataKey, encryptField } from "@/lib/client-crypto";
 
 const FROM = "GasTag <noreply@mobwatch.co.za>";
 
@@ -19,7 +20,7 @@ export async function POST(req: NextRequest) {
 
   const client = await prisma.client.findUnique({
     where: { id: clientId },
-    include: { vendor: { select: { name: true, isDemo: true, isTrial: true, trialStartedAt: true } } },
+    include: { vendor: { select: { name: true, isDemo: true, isTrial: true, trialStartedAt: true, encryptionOn: true, wrappedDataKey: true } } },
   });
   if (!client) return NextResponse.json({ error: "Client not found." }, { status: 404 });
 
@@ -31,8 +32,18 @@ export async function POST(req: NextRequest) {
     currentRemainingMonths ?? null
   );
 
+  const dataKey = (client.vendor.encryptionOn && client.vendor.wrappedDataKey)
+    ? getVendorDataKey(client.vendor.wrappedDataKey)
+    : null;
+
   const appliance = await prisma.appliance.create({
-    data: { clientId, applianceType, cylinderSizeKg, clientEstimatedDurationMonths: clientEstimatedDurationMonths ?? null },
+    data: {
+      clientId,
+      applianceType,
+      cylinderSizeKg: dataKey ? null : cylinderSizeKg,
+      cylinderSizeEnc: dataKey ? encryptField(String(cylinderSizeKg), dataKey) : null,
+      clientEstimatedDurationMonths: clientEstimatedDurationMonths ?? null,
+    },
   });
 
   const cycle = await prisma.cylinderCycle.create({

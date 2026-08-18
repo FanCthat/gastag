@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth-options";
 import { prisma } from "@/lib/db";
+import { getVendorDataKey, resolveCylinderSize } from "@/lib/client-crypto";
 import VendorNav from "./_components/nav";
 import PendingOrders from "./_components/pending-orders";
 import ClientList from "./_components/client-list";
@@ -15,7 +16,7 @@ export default async function VendorDashboard({ searchParams }: { searchParams: 
   const { tab = "orders" } = await searchParams;
 
   const [vendor, pendingOrders, clients] = await Promise.all([
-    prisma.vendor.findUnique({ where: { id: vendorId }, select: { name: true, logoUrl: true, isDemo: true } }),
+    prisma.vendor.findUnique({ where: { id: vendorId }, select: { name: true, logoUrl: true, isDemo: true, encryptionOn: true, wrappedDataKey: true } }),
     prisma.order.findMany({
       where: { vendorId, status: "pending" },
       orderBy: { placedAt: "desc" },
@@ -23,7 +24,7 @@ export default async function VendorDashboard({ searchParams }: { searchParams: 
         client: { select: { name: true, email: true, phone: true, deliveryAddress: true } },
         orderItems: {
           include: {
-            appliance: { select: { applianceType: true, cylinderSizeKg: true } },
+            appliance: { select: { applianceType: true, cylinderSizeKg: true, cylinderSizeEnc: true } },
           },
         },
       },
@@ -46,6 +47,29 @@ export default async function VendorDashboard({ searchParams }: { searchParams: 
     }),
   ]);
 
+  const dataKey = (vendor?.encryptionOn && vendor?.wrappedDataKey)
+    ? getVendorDataKey(vendor.wrappedDataKey)
+    : null;
+
+  const resolvedOrders = pendingOrders.map(order => ({
+    ...order,
+    orderItems: order.orderItems.map(item => ({
+      ...item,
+      appliance: {
+        ...item.appliance,
+        cylinderSizeKg: resolveCylinderSize(item.appliance.cylinderSizeKg, item.appliance.cylinderSizeEnc, dataKey),
+      },
+    })),
+  }));
+
+  const resolvedClients = clients.map(client => ({
+    ...client,
+    appliances: client.appliances.map(a => ({
+      ...a,
+      cylinderSizeKg: resolveCylinderSize(a.cylinderSizeKg, a.cylinderSizeEnc ?? null, dataKey),
+    })),
+  }));
+
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
@@ -62,11 +86,11 @@ export default async function VendorDashboard({ searchParams }: { searchParams: 
             <strong>🔬 Demo mode</strong> — You are viewing a demo account. Test clients and orders placed here will be cleared when your account is activated.
           </div>
         )}
-        {tab === "orders" && <PendingOrders orders={pendingOrders} vendorId={vendorId} />}
-        {tab === "clients" && <ClientList clients={clients} />}
+        {tab === "orders" && <PendingOrders orders={resolvedOrders} vendorId={vendorId} />}
+        {tab === "clients" && <ClientList clients={resolvedClients} />}
         {tab === "specials" && (
           <BroadcastForm
-            clients={clients.map(c => ({ id: c.id, name: c.name, email: c.email }))}
+            clients={resolvedClients.map(c => ({ id: c.id, name: c.name, email: c.email }))}
             vendorName={vendor?.name ?? ""}
           />
         )}
