@@ -35,13 +35,7 @@ export async function GET(req: NextRequest) {
   });
 
   if (!vendor) {
-    return NextResponse.json({ error: "No matching vendor found (no active vendor with encryptionOn=false)" }, { status: 404 });
-  }
-
-  if (vendor.encryptionOn) {
-    return NextResponse.json({
-      error: `Vendor "${vendor.name}" already has encryptionOn=true — nothing to migrate`,
-    }, { status: 400 });
+    return NextResponse.json({ error: "No matching vendor found" }, { status: 404 });
   }
 
   // Get or generate the data key
