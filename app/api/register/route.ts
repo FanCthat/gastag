@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { sendEmail } from "@/lib/email";
+import { getVendorDataKey, encryptField, hashEmail } from "@/lib/client-crypto";
 
 export async function POST(req: NextRequest) {
   const { qrCodeId, name, email, phone, deliveryAddress, notificationPreference } = await req.json();
@@ -14,15 +15,32 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "QR code not available." }, { status: 400 });
   }
 
+  const vendor = await prisma.vendor.findUnique({
+    where: { id: qr.vendorId },
+    select: { name: true, contactEmail: true, encryptionOn: true, wrappedDataKey: true },
+  });
+  if (!vendor) return NextResponse.json({ error: "Vendor not found." }, { status: 400 });
+
+  const dataKey = (vendor.encryptionOn && vendor.wrappedDataKey)
+    ? getVendorDataKey(vendor.wrappedDataKey)
+    : null;
+
+  const normalEmail = email.trim().toLowerCase();
+
   const client = await prisma.$transaction(async tx => {
     const c = await tx.client.create({
       data: {
         qrCodeId,
         vendorId: qr.vendorId,
-        name,
-        email,
-        phone: phone || null,
-        deliveryAddress,
+        name:              dataKey ? null : name,
+        nameEnc:           dataKey ? encryptField(name, dataKey) : null,
+        email:             dataKey ? null : normalEmail,
+        emailEnc:          dataKey ? encryptField(normalEmail, dataKey) : null,
+        emailHash:         hashEmail(email),
+        phone:             (phone && !dataKey) ? phone : null,
+        phoneEnc:          (phone && dataKey)  ? encryptField(phone, dataKey) : null,
+        deliveryAddress:    dataKey ? null : deliveryAddress,
+        deliveryAddressEnc: dataKey ? encryptField(deliveryAddress, dataKey) : null,
         notificationPreference: notificationPreference || "both",
       },
     });
@@ -33,11 +51,9 @@ export async function POST(req: NextRequest) {
     return c;
   });
 
-  // Notify vendor + Paul of new registration. Fire-and-forget — don't block the client's response.
-  prisma.vendor.findUnique({
-    where: { id: qr.vendorId },
-    select: { name: true, contactEmail: true },
-  }).then(vendor => {
+  // Notify vendor + Paul. Uses plaintext values from the request (pre-encryption).
+  // Fire-and-forget — don't block the client's response.
+  Promise.resolve().then(async () => {
     if (!vendor) return;
     const dashboardUrl = `${process.env.APP_BASE_URL}/vendor/dashboard`;
     return sendEmail({

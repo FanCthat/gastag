@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { getVendorDataKey, resolveCylinderSize } from "@/lib/client-crypto";
+import { getVendorDataKey, resolveField, resolveCylinderSize } from "@/lib/client-crypto";
 import DeleteCylinderButton from "./_components/delete-cylinder-button";
 import EditProfileForm from "./_components/edit-profile-form";
 
@@ -49,6 +49,12 @@ export default async function AccountPage({ params }: { params: Promise<{ id: st
     ? getVendorDataKey(client.vendor.wrappedDataKey)
     : null;
 
+  const clientName    = resolveField(client.nameEnc,            client.name,            dataKey);
+  const clientEmail   = resolveField(client.emailEnc,           client.email,           dataKey);
+  const clientPhone   = client.phoneEnc
+    ? resolveField(client.phoneEnc, client.phone, dataKey)
+    : (client.phone ?? null);
+
   const appliances = client.appliances.map(a => ({
     ...a,
     cylinderSizeKg: resolveCylinderSize(a.cylinderSizeKg, a.cylinderSizeEnc ?? null, dataKey),
@@ -61,7 +67,7 @@ export default async function AccountPage({ params }: { params: Promise<{ id: st
       <div className="max-w-lg mx-auto py-8 px-4 space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{client.name}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{clientName}</h1>
           <p className="text-sm text-gray-500 mt-0.5">Supplier: {client.vendor.name}</p>
         </div>
 
@@ -135,9 +141,9 @@ export default async function AccountPage({ params }: { params: Promise<{ id: st
         <EditProfileForm
           clientId={clientId}
           initial={{
-            name: client.name,
-            email: client.email,
-            phone: client.phone,
+            name: clientName,
+            email: clientEmail,
+            phone: clientPhone,
             notificationPreference: client.notificationPreference,
           }}
         />

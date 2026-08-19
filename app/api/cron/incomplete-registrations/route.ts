@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { sendEmail } from "@/lib/email";
+import { getVendorDataKey, resolveField } from "@/lib/client-crypto";
 
 export const dynamic = "force-dynamic";
 
 const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
 
-function html(vendor: { contactName: string }, client: { name: string; email: string; phone: string | null; createdAt: Date }, dashboardUrl: string) {
+function html(vendor: { contactName: string }, client: { name: string; email: string; phone: string | null; createdAt: Date }, dashboardUrl: string): string {
   const registeredAt = new Date(client.createdAt).toLocaleString("en-ZA", {
     day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit",
   });
@@ -38,8 +39,16 @@ export async function GET(req: NextRequest) {
       incompleteAlertSentAt: null,
       appliances: { none: {} },
     },
-    include: {
-      vendor: { select: { contactName: true, contactEmail: true, isActive: true } },
+    select: {
+      id: true,
+      name: true,
+      nameEnc: true,
+      email: true,
+      emailEnc: true,
+      phone: true,
+      phoneEnc: true,
+      createdAt: true,
+      vendor: { select: { contactName: true, contactEmail: true, isActive: true, encryptionOn: true, wrappedDataKey: true } },
     },
   });
 
@@ -48,23 +57,32 @@ export async function GET(req: NextRequest) {
 
   for (const client of incomplete) {
     const { vendor } = client;
+    const dataKey = (vendor.encryptionOn && vendor.wrappedDataKey)
+      ? getVendorDataKey(vendor.wrappedDataKey)
+      : null;
+    const clientName  = resolveField(client.nameEnc,  client.name,  dataKey);
+    const clientEmail = resolveField(client.emailEnc, client.email, dataKey);
+    const clientPhone = client.phoneEnc
+      ? resolveField(client.phoneEnc, client.phone, dataKey)
+      : (client.phone ?? null);
 
     if (!vendor.isActive) {
-      log.push(`skipped ${client.name} — vendor inactive`);
+      log.push(`skipped ${clientName} — vendor inactive`);
       await prisma.client.update({ where: { id: client.id }, data: { incompleteAlertSentAt: new Date() } });
       continue;
     }
 
+    const resolved = { name: clientName, email: clientEmail, phone: clientPhone, createdAt: client.createdAt };
     try {
       await sendEmail({
         to: vendor.contactEmail,
-        subject: `${client.name} started registering on GasTag but didn't finish`,
-        html: html(vendor, client, dashboardUrl),
+        subject: `${clientName} started registering on GasTag but didn't finish`,
+        html: html(vendor, resolved, dashboardUrl),
       });
-      log.push(`alerted vendor for ${client.name} → ${vendor.contactEmail}`);
+      log.push(`alerted vendor for ${clientName} → ${vendor.contactEmail}`);
       alerted++;
     } catch (err: any) {
-      log.push(`FAILED for ${client.name} — ${err.message}`);
+      log.push(`FAILED for ${clientName} — ${err.message}`);
       continue;
     }
 

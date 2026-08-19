@@ -1,3 +1,4 @@
+import { createHash } from "crypto";
 import { unwrapKey, encrypt, decrypt } from "./encryption";
 
 export function getVendorDataKey(wrappedDataKey: string): string {
@@ -12,6 +13,24 @@ export function encryptField(value: string, dataKey: string): string {
 
 export function decryptField(ciphertext: string, dataKey: string): string {
   return decrypt(ciphertext, dataKey);
+}
+
+// Resolves a PII string field regardless of whether the vendor uses encryption.
+// For encrypted vendors: decrypts encValue. For non-encrypted: returns plainValue.
+export function resolveField(
+  encValue: string | null | undefined,
+  plainValue: string | null | undefined,
+  dataKey: string | null,
+): string {
+  if (dataKey && encValue) {
+    return decrypt(encValue, dataKey);
+  }
+  return plainValue ?? "";
+}
+
+// Normalised SHA-256 of an email address — used as the lookup key when email is encrypted.
+export function hashEmail(email: string): string {
+  return createHash("sha256").update(email.trim().toLowerCase()).digest("hex");
 }
 
 // Resolves the cylinder size regardless of whether the vendor uses encryption.

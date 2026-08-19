@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db";
 import { predictCycle1 } from "@/lib/prediction";
 import { scheduleNotificationsForCycle } from "@/lib/notifications";
 import { sendEmail } from "@/lib/email";
-import { getVendorDataKey, encryptField } from "@/lib/client-crypto";
+import { getVendorDataKey, encryptField, resolveField } from "@/lib/client-crypto";
 
 const FROM = "GasTag <noreply@mobwatch.co.za>";
 
@@ -65,7 +65,9 @@ export async function POST(req: NextRequest) {
   const daysRemaining = Math.ceil((predictedEmptyDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
   const isLowGas = currentRemainingMonths !== null && currentRemainingMonths !== undefined && daysRemaining <= 42;
 
-  const firstName = client.name.split(" ")[0];
+  const clientName  = resolveField(client.nameEnc,  client.name,  dataKey);
+  const clientEmail = resolveField(client.emailEnc, client.email, dataKey);
+  const firstName = clientName.split(" ")[0];
 
   const lowGasWarning = isLowGas ? `
     <div style="background:#fff7ed;border:1px solid #fb923c;border-radius:8px;padding:12px 16px;margin:16px 0">
@@ -84,7 +86,7 @@ export async function POST(req: NextRequest) {
     const nextDemoUrl = `${process.env.APP_BASE_URL}/demo/next/${clientId}`;
     try {
       await sendEmail({
-        to: client.email,
+        to: clientEmail,
         subject: `🔬 DEMO — Your first GasTag reminder, ${firstName}`,
         from: FROM,
         html: `
@@ -115,7 +117,7 @@ export async function POST(req: NextRequest) {
   } else {
     try {
       await sendEmail({
-        to: client.email,
+        to: clientEmail,
         subject: isFirst
           ? (isLowGas
               ? `GasTag — your cylinder is running low, ${firstName}!`

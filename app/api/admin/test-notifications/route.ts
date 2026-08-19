@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { hashEmail } from "@/lib/client-crypto";
 
 export const dynamic = "force-dynamic";
 
@@ -39,8 +40,12 @@ export async function GET(req: NextRequest) {
     );
   }
 
+  const where = email
+    ? { OR: [{ emailHash: hashEmail(email) }, { email }] }
+    : { id: clientId! };
+
   const client = await prisma.client.findFirst({
-    where: email ? { email } : { id: clientId! },
+    where,
     include: {
       appliances: {
         where: { isActive: true },

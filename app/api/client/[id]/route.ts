@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getVendorDataKey, encryptField, hashEmail } from "@/lib/client-crypto";
 
 export const dynamic = "force-dynamic";
 
@@ -26,18 +27,39 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     return NextResponse.json({ error: "Invalid notification preference." }, { status: 400 });
   }
 
-  const client = await prisma.client.findUnique({ where: { id: clientId }, select: { id: true } });
+  const client = await prisma.client.findUnique({
+    where: { id: clientId },
+    select: { id: true, vendor: { select: { encryptionOn: true, wrappedDataKey: true } } },
+  });
   if (!client) return NextResponse.json({ error: "Not found." }, { status: 404 });
+
+  const dataKey = (client.vendor.encryptionOn && client.vendor.wrappedDataKey)
+    ? getVendorDataKey(client.vendor.wrappedDataKey)
+    : null;
+
+  const normalName  = name.trim();
+  const normalEmail = email.trim().toLowerCase();
+  const normalPhone = phone?.trim() || null;
 
   const updated = await prisma.client.update({
     where: { id: clientId },
     data: {
-      name: name.trim(),
-      email: email.trim().toLowerCase(),
-      phone: phone?.trim() || null,
+      ...(dataKey ? {
+        name:    null,
+        nameEnc: encryptField(normalName, dataKey),
+        email:   null,
+        emailEnc: encryptField(normalEmail, dataKey),
+        phone:    null,
+        phoneEnc: normalPhone ? encryptField(normalPhone, dataKey) : null,
+      } : {
+        name:  normalName,
+        email: normalEmail,
+        phone: normalPhone,
+      }),
+      emailHash: hashEmail(email),
       ...(notificationPreference ? { notificationPreference } : {}),
     },
-    select: { name: true, email: true, phone: true, notificationPreference: true },
+    select: { name: true, nameEnc: true, email: true, emailEnc: true, phone: true, phoneEnc: true, notificationPreference: true },
   });
 
   return NextResponse.json({ ok: true, client: updated });
