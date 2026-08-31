@@ -20,11 +20,11 @@ export default async function ScanPage({ params }: { params: Promise<{ id: strin
     );
   }
 
-  if (qr.state === "registered" && qr.client) {
+  if (qr.state === "registered" && qr.client && !qr.client.suppressedAt) {
     redirect(`/account/${qr.client.id}`);
   }
 
-  if (qr.state === "pre_registered" && qr.client) {
+  if (qr.state === "pre_registered" && qr.client && !qr.client.suppressedAt) {
     redirect(`/confirm/${qr.client.id}`);
   }
 

@@ -43,7 +43,7 @@ export default async function AccountPage({ params }: { params: Promise<{ id: st
     },
   });
 
-  if (!client) notFound();
+  if (!client || client.suppressedAt) notFound();
 
   const dataKey = (client.vendor.encryptionOn && client.vendor.wrappedDataKey)
     ? getVendorDataKey(client.vendor.wrappedDataKey)
