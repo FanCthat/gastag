@@ -24,5 +24,9 @@ export default async function ScanPage({ params }: { params: Promise<{ id: strin
     redirect(`/account/${qr.client.id}`);
   }
 
+  if (qr.state === "pre_registered" && qr.client) {
+    redirect(`/confirm/${qr.client.id}`);
+  }
+
   redirect(`/register/${id}`);
 }
