@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { cookies } from "next/headers";
 import { randomBytes } from "crypto";
 
 export const runtime = "nodejs";
@@ -35,23 +36,23 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
     });
     await tx.notification.deleteMany({ where: { clientId, sentAt: null } });
     if (needsRegistration) {
-      await tx.qRCode.update({
-        where: { id: client.qrCode.id },
+      await tx.qRCode.updateMany({
+        where: { client: { id: clientId } },
         data: { state: "registered", registeredAt: new Date() },
       });
     }
   });
 
-  const response = NextResponse.json({ ok: true });
-
   if (deviceToken) {
-    response.cookies.set(`gastag_device_${clientId}`, deviceToken, {
+    const cookieStore = await cookies();
+    cookieStore.set(`gastag_device_${clientId}`, deviceToken, {
       httpOnly: true,
+      secure: true,
+      sameSite: "lax",
       maxAge: 60 * 60 * 24 * 365 * 5,
       path: "/",
-      sameSite: "lax",
     });
   }
 
-  return response;
+  return NextResponse.json({ ok: true });
 }

@@ -88,7 +88,8 @@ export default function ConfirmShell({
   async function handleMute() {
     setLoading(true);
     try {
-      await fetch(`/api/client/${clientId}/mute-notifications`, { method: "POST" });
+      const res = await fetch(`/api/client/${clientId}/mute-notifications`, { method: "POST" });
+      if (!res.ok) { setError("Something went wrong. Please try again."); return; }
       setIsMuted(true);
       setStage("muted_confirm");
     } catch {
