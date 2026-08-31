@@ -49,10 +49,12 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ cli
         where: { clientId, sentAt: null },
       });
 
-      // Free the QR code so it can be reassigned to a new client.
+      // Mark the QR code as replaced so scanning shows a clear "retired" message
+      // rather than a blank 404. The tag cannot be reassigned after suppression
+      // because the client record must retain the qrCodeId (non-nullable FK).
       await tx.qRCode.update({
         where: { id: client.qrCodeId },
-        data: { state: "unregistered", registeredAt: null },
+        data: { state: "replaced" },
       });
     });
   } catch (err: any) {
