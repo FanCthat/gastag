@@ -7,6 +7,8 @@ import VendorNav from "./_components/nav";
 import PendingOrders from "./_components/pending-orders";
 import ClientList from "./_components/client-list";
 import BroadcastForm from "./_components/broadcast-form";
+import RemovalRequestsBanner from "./_components/removal-requests-banner";
+import Link from "next/link";
 
 export default async function VendorDashboard({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
   const session = await getServerSession(authOptions);
@@ -15,7 +17,7 @@ export default async function VendorDashboard({ searchParams }: { searchParams: 
   const vendorId = (session.user as any).id as string;
   const { tab = "orders" } = await searchParams;
 
-  const [vendor, pendingOrders, clients] = await Promise.all([
+  const [vendor, pendingOrders, clients, removalRequests] = await Promise.all([
     prisma.vendor.findUnique({ where: { id: vendorId }, select: { name: true, logoUrl: true, isDemo: true, encryptionOn: true, wrappedDataKey: true } }),
     prisma.order.findMany({
       where: { vendorId, status: "pending" },
@@ -44,6 +46,15 @@ export default async function VendorDashboard({ searchParams }: { searchParams: 
           },
         },
       },
+    }),
+    prisma.client.findMany({
+      where: { vendorId, removalRequestedAt: { not: null }, suppressedAt: null },
+      select: {
+        id: true,
+        name: true, nameEnc: true,
+        removalRequestedAt: true,
+      },
+      orderBy: { removalRequestedAt: "asc" },
     }),
   ]);
 
@@ -85,6 +96,12 @@ export default async function VendorDashboard({ searchParams }: { searchParams: 
     })),
   }));
 
+  const resolvedRemovalRequests = removalRequests.map(c => ({
+    id: c.id,
+    displayName: resolveField(c.nameEnc, c.name, dataKey) || "Unknown client",
+    requestedAt: c.removalRequestedAt!.toISOString(),
+  }));
+
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
@@ -92,10 +109,19 @@ export default async function VendorDashboard({ searchParams }: { searchParams: 
           <h1 className="text-lg font-bold text-gray-900">{vendor?.name}</h1>
           <p className="text-xs text-gray-400">GasTag Supplier Portal</p>
         </div>
-        <VendorNav activeTab={tab} pendingCount={pendingOrders.length} />
+        <div className="flex items-center gap-3">
+          <Link
+            href="/vendor/dashboard/pre-register"
+            className="text-xs font-medium bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg transition-colors"
+          >
+            + Pre-register client
+          </Link>
+          <VendorNav activeTab={tab} pendingCount={pendingOrders.length} />
+        </div>
       </header>
 
       <div className="p-6">
+        <RemovalRequestsBanner clients={resolvedRemovalRequests} />
         {vendor?.isDemo && (
           <div className="mb-4 rounded-xl bg-blue-50 border border-blue-200 px-4 py-3 text-sm text-blue-800">
             <strong>🔬 Demo mode</strong> — You are viewing a demo account. Test clients and orders placed here will be cleared when your account is activated.
