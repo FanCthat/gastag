@@ -1,9 +1,11 @@
 import { prisma } from "@/lib/db";
 import { notFound } from "next/navigation";
+import { cookies } from "next/headers";
 import Link from "next/link";
 import { getVendorDataKey, resolveField, resolveCylinderSize } from "@/lib/client-crypto";
 import DeleteCylinderButton from "./_components/delete-cylinder-button";
 import EditProfileForm from "./_components/edit-profile-form";
+import MutedBanner from "./_components/muted-banner";
 
 function formatDate(d: Date) {
   return new Date(d).toLocaleDateString("en-ZA", { day: "numeric", month: "long", year: "numeric" });
@@ -43,7 +45,35 @@ export default async function AccountPage({ params }: { params: Promise<{ id: st
     },
   });
 
-  if (!client) notFound();
+  if (!client || client.suppressedAt) notFound();
+
+  const cookieStore = await cookies();
+  const cookieToken = cookieStore.get(`gastag_device_${clientId}`)?.value ?? null;
+  const trusted = !!(client.deviceToken && cookieToken === client.deviceToken);
+
+  if (!trusted) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+        <div className="max-w-sm mx-auto text-center space-y-6 pt-16 pb-12">
+          <div className="inline-flex items-center justify-center w-14 h-14 bg-orange-500 rounded-2xl">
+            <span className="text-white text-2xl font-bold">G</span>
+          </div>
+          <div className="space-y-2">
+            <h1 className="text-xl font-bold text-gray-900">This is a GasSA keyring</h1>
+            <p className="text-sm text-gray-500">
+              This keyring belongs to a GasSA customer. If you found it, please hand it in or leave this page.
+            </p>
+          </div>
+          <Link
+            href={`/confirm/${clientId}?return=/account/${clientId}`}
+            className="block w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 rounded-xl text-sm transition-colors"
+          >
+            This is my keyring — verify
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   const dataKey = (client.vendor.encryptionOn && client.vendor.wrappedDataKey)
     ? getVendorDataKey(client.vendor.wrappedDataKey)
@@ -70,6 +100,11 @@ export default async function AccountPage({ params }: { params: Promise<{ id: st
           <h1 className="text-2xl font-bold text-gray-900">{clientName}</h1>
           <p className="text-sm text-gray-500 mt-0.5">Supplier: {client.vendor.name}</p>
         </div>
+
+        {/* Muted reminders banner */}
+        {client.notificationPreference === "none" && (
+          <MutedBanner clientId={clientId} />
+        )}
 
         {/* Cylinders */}
         {appliances.length === 0 ? (

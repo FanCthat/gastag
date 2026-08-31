@@ -40,7 +40,7 @@ export async function GET(req: NextRequest) {
   const due = await prisma.notification.findMany({
     where: { sentAt: null, scheduledFor: { lte: now } },
     include: {
-      client: { select: { id: true, name: true, nameEnc: true, email: true, emailEnc: true, vendor: { select: { isTrial: true, encryptionOn: true, wrappedDataKey: true } } } },
+      client: { select: { id: true, name: true, nameEnc: true, email: true, emailEnc: true, notificationPreference: true, vendor: { select: { isTrial: true, encryptionOn: true, wrappedDataKey: true } } } },
       appliance: { select: { applianceType: true, cylinderSizeKg: true, cylinderSizeEnc: true } },
     },
     orderBy: { scheduledFor: "asc" },
@@ -54,6 +54,14 @@ export async function GET(req: NextRequest) {
     if (!client || !appliance) {
       await prisma.notification.update({ where: { id: notif.id }, data: { sentAt: now } });
       log.push(`${notif.type}: skipped — missing client or appliance`);
+      continue;
+    }
+
+    // Customer has muted all notifications — mark sent without emailing.
+    // Future: when push is live this check needs to be per-channel.
+    if (client.notificationPreference === "none") {
+      await prisma.notification.update({ where: { id: notif.id }, data: { sentAt: now } });
+      log.push(`${notif.type}: skipped — client ${client.id} has notifications muted`);
       continue;
     }
 
