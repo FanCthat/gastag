@@ -45,7 +45,7 @@ model Vendor {
 model QRCode {
   id           String    @id @default(cuid())
   vendorId     String
-  state        String    @default("unregistered") // unregistered | registered
+  state        String    @default("unregistered") // unregistered | pre_registered | registered | replaced
   isTrialCode  Boolean   @default(false)
   createdAt    DateTime  @default(now())
   registeredAt DateTime?
@@ -70,6 +70,11 @@ model Client {
   deliveryAddress        String?  // null for encrypted vendors; plaintext for GasSA
   deliveryAddressEnc     String?  // encrypted delivery address
   notificationPreference String    @default("both") // email | push | both
+  phoneHash              String?   // sha256(phone) for suppression matching when phone is the only identifier
+  confirmedAt            DateTime? // set when client confirms from their own phone at handover
+  deviceToken            String?   @unique // random token stored in cookie on client's trusted device
+  removalRequestedAt     DateTime? // set when client requests removal via "Remove me" link
+  suppressedAt           DateTime? // set when vendor actions the suppression; clears the dashboard banner
   incompleteAlertSentAt  DateTime?
   createdAt              DateTime  @default(now())
   updatedAt              DateTime  @updatedAt
