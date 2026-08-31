@@ -103,7 +103,13 @@ export default function ConfirmShell({
     try {
       await fetch(`/api/client/${clientId}/unmute-notifications`, { method: "POST" });
       setIsMuted(false);
-      router.refresh();
+      // From muted_confirm the client is fully registered — go to account page.
+      // From the form stage, stay and let them save their details.
+      if (stage === "muted_confirm") {
+        router.push(`/account/${clientId}`);
+      } else {
+        router.refresh();
+      }
     } catch {
       setError("Network error. Please try again.");
     } finally {
