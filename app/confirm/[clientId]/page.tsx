@@ -6,8 +6,19 @@ import ConfirmShell from "./_confirm-shell";
 
 export const dynamic = "force-dynamic";
 
-export default async function ConfirmPage({ params }: { params: Promise<{ clientId: string }> }) {
+export default async function ConfirmPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ clientId: string }>;
+  searchParams: Promise<{ return?: string }>;
+}) {
   const { clientId } = await params;
+  const { return: returnParam } = await searchParams;
+  // Only allow internal paths — reject anything that could be an open redirect.
+  const returnUrl = (returnParam && returnParam.startsWith("/") && !returnParam.startsWith("//"))
+    ? returnParam
+    : null;
 
   const client = await prisma.client.findUnique({
     where: { id: clientId },
@@ -48,6 +59,7 @@ export default async function ConfirmPage({ params }: { params: Promise<{ client
         clientId={clientId}
         trusted={trusted}
         initialData={initialData}
+        returnUrl={returnUrl}
       />
     </div>
   );

@@ -15,10 +15,12 @@ export default function ConfirmShell({
   clientId,
   trusted,
   initialData,
+  returnUrl,
 }: {
   clientId: string;
   trusted: boolean;
   initialData: InitialData | null;
+  returnUrl?: string | null;
 }) {
   const router = useRouter();
   const [stage, setStage] = useState<"neutral" | "form" | "removal" | "done" | "removed">(
@@ -68,7 +70,11 @@ export default function ConfirmShell({
         setError(d.error ?? "Something went wrong.");
         return;
       }
-      setStage("done");
+      if (returnUrl) {
+        router.push(returnUrl);
+      } else {
+        setStage("done");
+      }
     } catch {
       setError("Network error. Please try again.");
     } finally {
