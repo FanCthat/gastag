@@ -32,7 +32,7 @@ export default async function VendorDashboard({ searchParams }: { searchParams: 
       },
     }),
     prisma.client.findMany({
-      where: { vendorId },
+      where: { vendorId, suppressedAt: null },
       orderBy: { createdAt: "desc" },
       include: {
         appliances: {
