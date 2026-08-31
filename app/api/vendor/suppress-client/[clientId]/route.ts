@@ -19,7 +19,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ cli
 
   const client = await prisma.client.findUnique({
     where: { id: clientId },
-    select: { id: true, vendorId: true, suppressedAt: true },
+    select: { id: true, vendorId: true, suppressedAt: true, qrCodeId: true },
   });
 
   if (!client) return NextResponse.json({ error: "Client not found." }, { status: 404 });
@@ -47,6 +47,12 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ cli
       // Cancel all unsent notifications so no further reminders fire.
       await tx.notification.deleteMany({
         where: { clientId, sentAt: null },
+      });
+
+      // Free the QR code so it can be reassigned to a new client.
+      await tx.qRCode.update({
+        where: { id: client.qrCodeId },
+        data: { state: "unregistered", registeredAt: null },
       });
     });
   } catch (err: any) {
