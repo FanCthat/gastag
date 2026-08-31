@@ -10,18 +10,25 @@ export default function RemovalRequestsBanner({ clients }: { clients: PendingCli
   const [expanded, setExpanded] = useState(false);
   const [suppressing, setSuppressing] = useState<string | null>(null);
   const [done, setDone] = useState<Set<string>>(new Set());
+  const [suppressError, setSuppressError] = useState<string | null>(null);
 
   const visible = clients.filter(c => !done.has(c.id));
   if (visible.length === 0) return null;
 
   async function suppress(clientId: string) {
     setSuppressing(clientId);
+    setSuppressError(null);
     try {
       const res = await fetch(`/api/vendor/suppress-client/${clientId}`, { method: "POST" });
       if (res.ok) {
         setDone(prev => new Set([...prev, clientId]));
         router.refresh();
+      } else {
+        const body = await res.json().catch(() => ({}));
+        setSuppressError(body.detail ?? body.error ?? `Server error ${res.status}`);
       }
+    } catch {
+      setSuppressError("Network error — please try again.");
     } finally {
       setSuppressing(null);
     }
@@ -61,11 +68,16 @@ export default function RemovalRequestsBanner({ clients }: { clients: PendingCli
               </button>
             </div>
           ))}
-          <div className="px-4 py-3 bg-red-50/50">
+          <div className="px-4 py-3 bg-red-50/50 space-y-1">
             <p className="text-xs text-red-700">
               Suppressing stops all contact and reduces the record to a do-not-contact identifier only.
               This cannot be undone and clears this alert permanently.
             </p>
+            {suppressError && (
+              <p className="text-xs font-medium text-red-900 bg-red-100 border border-red-300 rounded px-2 py-1">
+                Error: {suppressError}
+              </p>
+            )}
           </div>
         </div>
       )}

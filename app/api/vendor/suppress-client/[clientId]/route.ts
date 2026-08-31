@@ -26,28 +26,36 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ cli
   if (client.vendorId !== vendorId) return NextResponse.json({ error: "Forbidden." }, { status: 403 });
   if (client.suppressedAt) return NextResponse.json({ ok: true }); // idempotent
 
-  await prisma.$transaction(async tx => {
-    // Strip all PII — retain only emailHash and phoneHash for future import matching.
-    await tx.client.update({
-      where: { id: clientId },
-      data: {
-        name: null, nameEnc: null,
-        email: null, emailEnc: null,
-        phone: null, phoneEnc: null,
-        deliveryAddress: null, deliveryAddressEnc: null,
-        deviceToken: null,
-        confirmedAt: null,
-        notificationPreference: "email", // reset to default; no messages will send
-        suppressedAt: new Date(),
-        removalRequestedAt: null, // clear the request flag — suppression IS the action
-      },
-    });
+  try {
+    await prisma.$transaction(async tx => {
+      // Strip all PII — retain only emailHash and phoneHash for future import matching.
+      await tx.client.update({
+        where: { id: clientId },
+        data: {
+          name: null, nameEnc: null,
+          email: null, emailEnc: null,
+          phone: null, phoneEnc: null,
+          deliveryAddress: null, deliveryAddressEnc: null,
+          deviceToken: null,
+          confirmedAt: null,
+          notificationPreference: "email",
+          suppressedAt: new Date(),
+          removalRequestedAt: null,
+        },
+      });
 
-    // Cancel all unsent notifications so no further reminders fire.
-    await tx.notification.deleteMany({
-      where: { clientId, sentAt: null },
+      // Cancel all unsent notifications so no further reminders fire.
+      await tx.notification.deleteMany({
+        where: { clientId, sentAt: null },
+      });
     });
-  });
+  } catch (err: any) {
+    console.error("suppress-client transaction failed:", err);
+    return NextResponse.json(
+      { error: "Suppression failed.", detail: err?.message ?? String(err) },
+      { status: 500 }
+    );
+  }
 
   return NextResponse.json({ ok: true });
 }
