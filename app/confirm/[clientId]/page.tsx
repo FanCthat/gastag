@@ -30,6 +30,7 @@ export default async function ConfirmPage({
       deliveryAddress: true, deliveryAddressEnc: true,
       deviceToken: true,
       suppressedAt: true,
+      notificationPreference: true,
       vendor: { select: { name: true, encryptionOn: true, wrappedDataKey: true } },
     },
   });
@@ -60,6 +61,7 @@ export default async function ConfirmPage({
         trusted={trusted}
         initialData={initialData}
         returnUrl={returnUrl}
+        isMuted={client.notificationPreference === "none"}
       />
     </div>
   );

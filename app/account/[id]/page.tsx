@@ -5,6 +5,7 @@ import Link from "next/link";
 import { getVendorDataKey, resolveField, resolveCylinderSize } from "@/lib/client-crypto";
 import DeleteCylinderButton from "./_components/delete-cylinder-button";
 import EditProfileForm from "./_components/edit-profile-form";
+import MutedBanner from "./_components/muted-banner";
 
 function formatDate(d: Date) {
   return new Date(d).toLocaleDateString("en-ZA", { day: "numeric", month: "long", year: "numeric" });
@@ -99,6 +100,11 @@ export default async function AccountPage({ params }: { params: Promise<{ id: st
           <h1 className="text-2xl font-bold text-gray-900">{clientName}</h1>
           <p className="text-sm text-gray-500 mt-0.5">Supplier: {client.vendor.name}</p>
         </div>
+
+        {/* Muted reminders banner */}
+        {client.notificationPreference === "none" && (
+          <MutedBanner clientId={clientId} />
+        )}
 
         {/* Cylinders */}
         {appliances.length === 0 ? (
