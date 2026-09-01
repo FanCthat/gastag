@@ -164,7 +164,7 @@ export default function ConfirmShell({
             type="tel"
             value={challengePhone}
             onChange={e => setChallengePhone(e.target.value)}
-            placeholder="+27 82 000 0000"
+            placeholder="082 000 0000"
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
           />
         </div>
@@ -193,7 +193,7 @@ export default function ConfirmShell({
         <div className="text-center space-y-1 mb-2">
           <h1 className="text-xl font-bold text-gray-900">Confirm your details</h1>
           <p className="text-sm text-gray-500">
-            These were loaded from {data?.vendorName ?? "your supplier"}. Correct anything that's wrong and tap Save.
+            Check your details below. Correct anything that's wrong and tap Save.
           </p>
         </div>
 
