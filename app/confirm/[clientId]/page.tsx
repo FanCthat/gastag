@@ -41,18 +41,19 @@ export default async function ConfirmPage({
   const cookieToken = cookieStore.get(`gastag_device_${clientId}`)?.value ?? null;
   const trusted = !!(client.deviceToken && cookieToken === client.deviceToken);
 
-  const dataKey = (client.vendor.encryptionOn && client.vendor.wrappedDataKey)
-    ? getVendorDataKey(client.vendor.wrappedDataKey)
-    : null;
-
-  // Pass resolved data only to trusted devices — unknown devices get the neutral landing.
-  const initialData = trusted ? {
-    name: resolveField(client.nameEnc, client.name, dataKey),
-    phone: resolveField(client.phoneEnc, client.phone, dataKey),
-    email: resolveField(client.emailEnc, client.email, dataKey) || null,
-    deliveryAddress: resolveField(client.deliveryAddressEnc, client.deliveryAddress, dataKey),
-    vendorName: client.vendor.name,
-  } : null;
+  // Only decrypt for trusted devices — avoids calling getVendorDataKey for unknown devices.
+  const initialData = trusted ? (() => {
+    const dataKey = (client.vendor.encryptionOn && client.vendor.wrappedDataKey)
+      ? getVendorDataKey(client.vendor.wrappedDataKey)
+      : null;
+    return {
+      name: resolveField(client.nameEnc, client.name, dataKey),
+      phone: resolveField(client.phoneEnc, client.phone, dataKey),
+      email: resolveField(client.emailEnc, client.email, dataKey) || null,
+      deliveryAddress: resolveField(client.deliveryAddressEnc, client.deliveryAddress, dataKey),
+      vendorName: client.vendor.name,
+    };
+  })() : null;
 
   return (
     <div className="min-h-screen bg-gray-50 pb-12">
