@@ -63,7 +63,23 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   }
 
   const entered = hashPhone(phone);
-  const match = client.phoneHash && entered === client.phoneHash;
+  // Primary: compare against stored hash. Fallback: plain-text compare for
+  // legacy records where phoneHash was never backfilled, and backfill on match.
+  let match = false;
+  if (client.phoneHash) {
+    match = entered === client.phoneHash;
+  } else if (client.phone) {
+    const normalStored = client.phone.trim().replace(/\s/g, "");
+    const normalEntered = phone.trim().replace(/\s/g, "");
+    match = normalEntered === normalStored;
+    if (match) {
+      // Backfill phoneHash so future verifications use the hash path.
+      await prisma.client.update({
+        where: { id: clientId },
+        data: { phoneHash: entered },
+      });
+    }
+  }
 
   if (!match) {
     const attempts = (client.phoneVerifyAttempts ?? 0) + 1;
