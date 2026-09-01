@@ -20,7 +20,6 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   };
 
   if (!name?.trim()) return NextResponse.json({ error: "Name is required." }, { status: 400 });
-  if (!phone?.trim()) return NextResponse.json({ error: "Phone number is required." }, { status: 400 });
   if (!email?.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
     return NextResponse.json({ error: "Valid email is required." }, { status: 400 });
   }
@@ -42,22 +41,28 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const normalEmail = email.trim().toLowerCase();
   const normalPhone = phone?.trim() || null;
 
+  // Only include phone in the update when a value was actually supplied.
+  // An absent or empty phone means "unchanged" — never overwrite with null.
+  const phoneFields = normalPhone
+    ? (dataKey
+        ? { phone: null as null, phoneEnc: encryptField(normalPhone, dataKey) }
+        : { phone: normalPhone, phoneEnc: null as null })
+    : {};
+
   const updated = await prisma.client.update({
     where: { id: clientId },
     data: {
       ...(dataKey ? {
-        name:    null,
-        nameEnc: encryptField(normalName, dataKey),
-        email:   null,
+        name:     null,
+        nameEnc:  encryptField(normalName, dataKey),
+        email:    null,
         emailEnc: encryptField(normalEmail, dataKey),
-        phone:    null,
-        phoneEnc: normalPhone ? encryptField(normalPhone, dataKey) : null,
       } : {
         name:  normalName,
         email: normalEmail,
-        phone: normalPhone,
       }),
-      emailHash: hashEmail(email),
+      ...phoneFields,
+      emailHash: hashEmail(normalEmail),
       ...(notificationPreference ? { notificationPreference } : {}),
     },
     select: { name: true, nameEnc: true, email: true, emailEnc: true, phone: true, phoneEnc: true, notificationPreference: true },
