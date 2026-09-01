@@ -25,25 +25,41 @@ export default function ConfirmShell({
   isMuted?: boolean;
 }) {
   const router = useRouter();
-  const [stage, setStage] = useState<"neutral" | "form" | "removal" | "muted_confirm" | "done" | "removed">(
-    trusted ? "form" : "neutral"
+  const [stage, setStage] = useState<"challenge" | "form" | "removal" | "muted_confirm" | "done" | "removed">(
+    trusted ? "form" : "challenge"
   );
   const [data, setData] = useState<InitialData | null>(initialData);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isMuted, setIsMuted] = useState(initiallyMuted ?? false);
 
-  // Form state — pre-populated from initial data
+  // Challenge state
+  const [challengePhone, setChallengePhone] = useState("");
+
+  // Form state — pre-populated from initial data or after passing challenge
   const [name, setName] = useState(initialData?.name ?? "");
   const [phone, setPhone] = useState(initialData?.phone ?? "");
   const [email, setEmail] = useState(initialData?.email ?? "");
   const [address, setAddress] = useState(initialData?.deliveryAddress ?? "");
 
-  async function loadData() {
+  async function handleChallenge(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
     setLoading(true);
     try {
-      const res = await fetch(`/api/client/${clientId}/confirm`);
-      if (!res.ok) { setError("Could not load your details. Please try again."); return; }
+      const res = await fetch(`/api/client/${clientId}/verify-phone`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: challengePhone }),
+      });
+      if (res.status === 429) {
+        setError("Too many attempts. Please try again in 15 minutes.");
+        return;
+      }
+      if (!res.ok) {
+        setError("That doesn't match our records. Please check and try again.");
+        return;
+      }
       const d: InitialData = await res.json();
       setData(d);
       setName(d.name);
@@ -104,8 +120,6 @@ export default function ConfirmShell({
     try {
       await fetch(`/api/client/${clientId}/unmute-notifications`, { method: "POST" });
       setIsMuted(false);
-      // From muted_confirm the client is fully registered — go to account page.
-      // From the form stage, stay and let them save their details.
       if (stage === "muted_confirm") {
         router.push(`/account/${clientId}`);
       } else {
@@ -130,33 +144,46 @@ export default function ConfirmShell({
     }
   }
 
-  if (stage === "neutral") {
+  if (stage === "challenge") {
     return (
-      <div className="max-w-sm mx-auto pt-16 px-4 text-center space-y-6">
+      <form onSubmit={handleChallenge} className="max-w-sm mx-auto pt-16 px-4 text-center space-y-6">
         <div className="inline-flex items-center justify-center w-14 h-14 bg-orange-500 rounded-2xl mb-2">
           <span className="text-white text-2xl font-bold">G</span>
         </div>
         <div className="space-y-2">
-          <h1 className="text-xl font-bold text-gray-900">Verify it's you</h1>
+          <h1 className="text-xl font-bold text-gray-900">Is this your keyring?</h1>
           <p className="text-sm text-gray-500">
-            Tap below to confirm your details and access your account. This is a one-time step on each new device.
+            Enter the phone number on your account to verify it's yours.
+            If you found this keyring, please return it to its owner.
           </p>
         </div>
+        <div className="text-left">
+          <label className="block text-xs font-medium text-gray-600 mb-1">Phone number</label>
+          <input
+            required
+            type="tel"
+            value={challengePhone}
+            onChange={e => setChallengePhone(e.target.value)}
+            placeholder="+27 82 000 0000"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+          />
+        </div>
+        {error && <p className="text-sm text-red-600">{error}</p>}
         <button
-          onClick={loadData}
+          type="submit"
           disabled={loading}
           className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 rounded-xl text-sm transition-colors disabled:opacity-50"
         >
-          {loading ? "Loading…" : "Confirm my details"}
+          {loading ? "Checking…" : "Verify"}
         </button>
         <button
+          type="button"
           onClick={() => setStage("removal")}
           className="text-sm text-gray-400 hover:text-gray-600 underline"
         >
           I'd prefer not to receive these reminders
         </button>
-        {error && <p className="text-sm text-red-600">{error}</p>}
-      </div>
+      </form>
     );
   }
 
@@ -269,7 +296,7 @@ export default function ConfirmShell({
         </div>
 
         <button
-          onClick={() => setStage(trusted ? "form" : "neutral")}
+          onClick={() => setStage(trusted ? "form" : "challenge")}
           className="w-full border border-gray-200 text-gray-600 font-medium py-3 rounded-xl text-sm hover:bg-gray-50 transition-colors"
         >
           Cancel — keep everything as is

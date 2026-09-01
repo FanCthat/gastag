@@ -76,6 +76,8 @@ model Client {
   removalRequestedAt     DateTime? // set when client requests removal via "Remove me" link
   suppressedAt           DateTime? // set when vendor actions the suppression; clears the dashboard banner
   incompleteAlertSentAt  DateTime?
+  phoneVerifyAttempts    Int       @default(0)
+  phoneVerifyLockedUntil DateTime?
   createdAt              DateTime  @default(now())
   updatedAt              DateTime  @updatedAt
   qrCode                 QRCode   @relation(fields: [qrCodeId], references: [id])
