@@ -8,12 +8,16 @@ export function getVendorDataKey(wrappedDataKey: string): string {
 }
 
 // Canonical SA phone form: digits only, 0-prefix.
-// 082 499 3552 → 0824993552
-// +27824993552 → 0824993552
-// 27824993552  → 0824993552
+// 082 499 3552  → 0824993552
+// +27824993552  → 0824993552
+// 27824993552   → 0824993552
+// 824993552     → 0824993552 (9-digit SA mobile missing leading 0)
 export function normalisePhone(raw: string): string {
   const digits = raw.replace(/\D/g, "");
   if (digits.startsWith("27") && digits.length === 11) return "0" + digits.slice(2);
+  // SA mobiles start with 6, 7, or 8 and are 10 digits locally.
+  // A 9-digit number starting with one of those is a missing leading 0.
+  if (digits.length === 9 && /^[678]/.test(digits)) return "0" + digits;
   return digits;
 }
 

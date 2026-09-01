@@ -2,15 +2,15 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth-options";
 import { prisma } from "@/lib/db";
-import { getVendorDataKey, decryptField, normalisePhone, hashPhone } from "@/lib/client-crypto";
+import { getVendorDataKey, decryptField, encryptField, normalisePhone, hashPhone } from "@/lib/client-crypto";
 
 export const runtime = "nodejs";
 
-// One-time backfill: compute phoneHash for every client that has a phone
-// (encrypted or plaintext) but no hash yet.
-//
-// Safe to run multiple times — WHERE clause skips clients who already have a hash.
-// Returns a count of rows updated.
+// Backfill / re-normalise phone hashes for all clients.
+// Safe to run multiple times — only writes when the stored hash or encrypted
+// phone differs from what the current normalisePhone function would produce.
+// Also corrects phoneEnc (and phone for plaintext vendors) when the stored
+// value differs from canonical form (e.g. missing leading 0, +27 prefix).
 export async function POST() {
   const session = await getServerSession(authOptions);
   if ((session?.user as any)?.role !== "super_admin") {
@@ -18,11 +18,14 @@ export async function POST() {
   }
 
   const clients = await prisma.client.findMany({
-    where: { phoneHash: null },
+    where: {
+      OR: [{ phone: { not: null } }, { phoneEnc: { not: null } }],
+    },
     select: {
       id: true,
       phone: true,
       phoneEnc: true,
+      phoneHash: true,
       vendor: { select: { encryptionOn: true, wrappedDataKey: true } },
     },
   });
@@ -32,12 +35,13 @@ export async function POST() {
 
   for (const client of clients) {
     let raw: string | null = null;
+    let dataKey: string | null = null;
 
     if (client.phone) {
       raw = client.phone;
     } else if (client.phoneEnc && client.vendor.encryptionOn && client.vendor.wrappedDataKey) {
       try {
-        const dataKey = getVendorDataKey(client.vendor.wrappedDataKey);
+        dataKey = getVendorDataKey(client.vendor.wrappedDataKey);
         raw = decryptField(client.phoneEnc, dataKey);
       } catch {
         skipped.push(client.id);
@@ -51,11 +55,28 @@ export async function POST() {
     }
 
     const canonical = normalisePhone(raw);
-    const hash = hashPhone(canonical);
+    const correctHash = hashPhone(canonical);
+
+    // Only write if something actually needs changing.
+    const hashWrong = client.phoneHash !== correctHash;
+    const phoneWrong = canonical !== raw.replace(/\D/g, "") && canonical !== raw;
+
+    if (!hashWrong && !phoneWrong) continue;
+
+    const updateData: Record<string, unknown> = { phoneHash: correctHash };
+
+    if (phoneWrong) {
+      if (client.vendor.encryptionOn && client.vendor.wrappedDataKey) {
+        if (!dataKey) dataKey = getVendorDataKey(client.vendor.wrappedDataKey);
+        updateData.phoneEnc = encryptField(canonical, dataKey);
+      } else {
+        updateData.phone = canonical;
+      }
+    }
 
     await prisma.client.update({
       where: { id: client.id },
-      data: { phoneHash: hash },
+      data: updateData,
     });
     updated++;
   }
