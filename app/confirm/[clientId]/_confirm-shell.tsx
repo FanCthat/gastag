@@ -176,13 +176,6 @@ export default function ConfirmShell({
         >
           {loading ? "Checking…" : "Verify"}
         </button>
-        <button
-          type="button"
-          onClick={() => setStage("removal")}
-          className="text-sm text-gray-400 hover:text-gray-600 underline"
-        >
-          I'd prefer not to receive these reminders
-        </button>
       </form>
     );
   }

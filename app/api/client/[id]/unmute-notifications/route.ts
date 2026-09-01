@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { cookies } from "next/headers";
 import { scheduleNotificationsForCycle } from "@/lib/notifications";
 
 export const runtime = "nodejs";
@@ -12,6 +13,7 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
     select: {
       id: true,
       suppressedAt: true,
+      deviceToken: true,
       appliances: {
         where: { isActive: true },
         select: {
@@ -30,6 +32,12 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
 
   if (!client || client.suppressedAt) {
     return NextResponse.json({ error: "Not found." }, { status: 404 });
+  }
+
+  const cookieStore = await cookies();
+  const cookieToken = cookieStore.get(`gastag_device_${clientId}`)?.value ?? null;
+  if (!client.deviceToken || cookieToken !== client.deviceToken) {
+    return NextResponse.json({ error: "Unauthorized." }, { status: 403 });
   }
 
   // Re-enable preference.
