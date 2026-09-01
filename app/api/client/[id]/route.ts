@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getVendorDataKey, encryptField, hashEmail } from "@/lib/client-crypto";
+import { getVendorDataKey, encryptField, hashEmail, hashPhone } from "@/lib/client-crypto";
 
 export const dynamic = "force-dynamic";
 
@@ -45,8 +45,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   // An absent or empty phone means "unchanged" — never overwrite with null.
   const phoneFields = normalPhone
     ? (dataKey
-        ? { phone: null as null, phoneEnc: encryptField(normalPhone, dataKey) }
-        : { phone: normalPhone, phoneEnc: null as null })
+        ? { phone: null as null, phoneEnc: encryptField(normalPhone, dataKey), phoneHash: hashPhone(normalPhone) }
+        : { phone: normalPhone, phoneEnc: null as null, phoneHash: hashPhone(normalPhone) })
     : {};
 
   const updated = await prisma.client.update({

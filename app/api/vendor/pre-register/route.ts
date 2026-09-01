@@ -2,16 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth-options";
 import { prisma } from "@/lib/db";
-import { getVendorDataKey, encryptField, hashEmail } from "@/lib/client-crypto";
+import { getVendorDataKey, encryptField, hashEmail, hashPhone } from "@/lib/client-crypto";
 import { scheduleNotificationsForCycle } from "@/lib/notifications";
 import { addMonths, getIndustryAverage, calcActualDurationMonths } from "@/lib/prediction";
-import { createHash } from "crypto";
 
 export const runtime = "nodejs";
-
-function hashPhone(phone: string): string {
-  return createHash("sha256").update(phone.trim().replace(/\s/g, "")).digest("hex");
-}
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);

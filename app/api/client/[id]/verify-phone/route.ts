@@ -1,17 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getVendorDataKey, resolveField } from "@/lib/client-crypto";
+import { getVendorDataKey, resolveField, hashPhone, normalisePhone, decryptField } from "@/lib/client-crypto";
 import { cookies } from "next/headers";
-import { createHash, randomBytes } from "crypto";
+import { randomBytes } from "crypto";
 
 export const runtime = "nodejs";
 
 const MAX_ATTEMPTS = 5;
 const LOCK_MINUTES = 15;
-
-function hashPhone(phone: string): string {
-  return createHash("sha256").update(phone.trim().replace(/\s/g, "")).digest("hex");
-}
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id: clientId } = await params;
@@ -62,22 +58,28 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     });
   }
 
+  // Always normalise before hashing so 082..., +27..., spaces, dashes all match.
   const entered = hashPhone(phone);
-  // Primary: compare against stored hash. Fallback: plain-text compare for
-  // legacy records where phoneHash was never backfilled, and backfill on match.
   let match = false;
+
   if (client.phoneHash) {
+    // Primary path: compare hashes (post-backfill, all clients land here).
     match = entered === client.phoneHash;
-  } else if (client.phone) {
-    const normalStored = client.phone.trim().replace(/\s/g, "");
-    const normalEntered = phone.trim().replace(/\s/g, "");
-    match = normalEntered === normalStored;
-    if (match) {
-      // Backfill phoneHash so future verifications use the hash path.
-      await prisma.client.update({
-        where: { id: clientId },
-        data: { phoneHash: entered },
-      });
+  } else {
+    // Fallback: no hash stored yet — compare plaintext after normalisation,
+    // then backfill the hash so future checks use the fast path.
+    const storedRaw = client.phone ??
+      (client.phoneEnc && client.vendor.encryptionOn && client.vendor.wrappedDataKey
+        ? decryptField(client.phoneEnc, getVendorDataKey(client.vendor.wrappedDataKey))
+        : null);
+    if (storedRaw) {
+      match = normalisePhone(storedRaw) === normalisePhone(phone);
+      if (match) {
+        await prisma.client.update({
+          where: { id: clientId },
+          data: { phoneHash: entered },
+        });
+      }
     }
   }
 

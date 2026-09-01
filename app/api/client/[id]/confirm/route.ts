@@ -1,14 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getVendorDataKey, encryptField, hashEmail, resolveField } from "@/lib/client-crypto";
-import { createHash, randomBytes } from "crypto";
+import { getVendorDataKey, encryptField, hashEmail, hashPhone, resolveField } from "@/lib/client-crypto";
+import { randomBytes } from "crypto";
 import { cookies } from "next/headers";
 
 export const runtime = "nodejs";
-
-function hashPhone(phone: string): string {
-  return createHash("sha256").update(phone.trim().replace(/\s/g, "")).digest("hex");
-}
 
 // GET — returns resolved client details for the confirm form (only if trusted device or after neutral step).
 // The neutral-step gate is enforced client-side; this route is called only when the user chooses to proceed.

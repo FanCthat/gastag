@@ -7,6 +7,20 @@ export function getVendorDataKey(wrappedDataKey: string): string {
   return unwrapKey(wrappedDataKey, masterKey);
 }
 
+// Canonical SA phone form: digits only, 0-prefix.
+// 082 499 3552 → 0824993552
+// +27824993552 → 0824993552
+// 27824993552  → 0824993552
+export function normalisePhone(raw: string): string {
+  const digits = raw.replace(/\D/g, "");
+  if (digits.startsWith("27") && digits.length === 11) return "0" + digits.slice(2);
+  return digits;
+}
+
+export function hashPhone(phone: string): string {
+  return createHash("sha256").update(normalisePhone(phone)).digest("hex");
+}
+
 export function encryptField(value: string, dataKey: string): string {
   return encrypt(value, dataKey);
 }

@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import BackfillPhoneHashesButton from "./_backfill-phone-hashes";
 
 export default async function AdminDashboard() {
   const [vendorCount, clientCount, activeOrders, pendingEscalations, unsentNotifications] =
@@ -33,6 +34,13 @@ export default async function AdminDashboard() {
             <div className="text-xs text-gray-500 mt-1">{s.label}</div>
           </div>
         ))}
+      </div>
+
+      <div className="mt-8">
+        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Data maintenance</h2>
+        <div className="max-w-md">
+          <BackfillPhoneHashesButton />
+        </div>
       </div>
     </div>
   );
