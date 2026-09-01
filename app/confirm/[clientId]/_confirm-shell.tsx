@@ -137,21 +137,17 @@ export default function ConfirmShell({
           <span className="text-white text-2xl font-bold">G</span>
         </div>
         <div className="space-y-2">
-          <h1 className="text-xl font-bold text-gray-900">Your GasSA keyring is ready</h1>
+          <h1 className="text-xl font-bold text-gray-900">Verify it's you</h1>
           <p className="text-sm text-gray-500">
-            Your gas account has been set up — you'll receive reminders before your cylinder runs out.
+            Tap below to confirm your details and access your account. This is a one-time step on each new device.
           </p>
-        </div>
-        <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-600 text-left space-y-2">
-          <p className="font-semibold text-gray-800">Before your first reminder arrives</p>
-          <p>Tap below to check your details and make sure everything is correct. If you'd prefer not to be on this system, you can opt out — no hard feelings.</p>
         </div>
         <button
           onClick={loadData}
           disabled={loading}
           className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 rounded-xl text-sm transition-colors disabled:opacity-50"
         >
-          {loading ? "Loading…" : "View and confirm my details"}
+          {loading ? "Loading…" : "Confirm my details"}
         </button>
         <button
           onClick={() => setStage("removal")}

@@ -20,6 +20,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   };
 
   if (!name?.trim()) return NextResponse.json({ error: "Name is required." }, { status: 400 });
+  if (!phone?.trim()) return NextResponse.json({ error: "Phone number is required." }, { status: 400 });
   if (!email?.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
     return NextResponse.json({ error: "Valid email is required." }, { status: 400 });
   }
