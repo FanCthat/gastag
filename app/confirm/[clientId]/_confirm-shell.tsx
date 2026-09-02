@@ -165,7 +165,7 @@ export default function ConfirmShell({
             value={challengePhone}
             onChange={e => setChallengePhone(e.target.value)}
             placeholder="082 000 0000"
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500"
           />
         </div>
         {error && <p className="text-sm text-red-600">{error}</p>}
