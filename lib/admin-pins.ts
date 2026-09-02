@@ -7,7 +7,8 @@ export function verifyPin(entered: string): { valid: true; name: string } | { va
   let pins: Array<{ hash: string; name: string }>;
   try {
     pins = JSON.parse(raw);
-  } catch {
+  } catch (e) {
+    console.log("[verifyPin] JSON.parse failed:", String(e), "raw length:", raw.length, "first chars:", raw.slice(0, 20));
     return { valid: false };
   }
 
