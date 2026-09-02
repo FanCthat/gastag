@@ -23,9 +23,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ qrC
   }
 
   const result = verifyPin(pin);
-  console.log("[admin-pin/verify] VENDOR_ADMIN_PINS set:", !!process.env.VENDOR_ADMIN_PINS);
-  console.log("[admin-pin/verify] ADMIN_PIN_SECRET set:", !!process.env.ADMIN_PIN_SECRET);
-  console.log("[admin-pin/verify] verifyPin result:", result.valid);
 
   if (!result.valid) {
     const currentAttempts = (qr.adminPinLockedUntil && qr.adminPinLockedUntil < new Date())

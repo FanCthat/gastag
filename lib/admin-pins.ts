@@ -6,17 +6,12 @@ export function verifyPin(entered: string): { valid: true; name: string } | { va
 
   let pins: Array<{ hash: string; name: string }>;
   try {
-    pins = JSON.parse(raw);
-  } catch (e) {
-    console.log("[verifyPin] JSON.parse failed:", String(e), "raw length:", raw.length, "first chars:", raw.slice(0, 20));
+    pins = JSON.parse(raw.replace(/[\x00-\x1F\x7F]+/g, ""));
+  } catch {
     return { valid: false };
   }
 
   const enteredHash = createHash("sha256").update(entered.toUpperCase()).digest("hex");
-  console.log("[verifyPin] pins count:", pins.length);
-  console.log("[verifyPin] enteredHash:", enteredHash);
-  console.log("[verifyPin] storedHash[0]:", pins[0]?.hash);
-  console.log("[verifyPin] lengths:", pins[0]?.hash?.length, enteredHash.length);
 
   for (const p of pins) {
     if (
