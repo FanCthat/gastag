@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import TagScanner from "./_tag-scanner";
 
 const APPLIANCE_OPTIONS = [
   { value: "stove", label: "Stove / Hob" },
@@ -44,6 +45,7 @@ export default function PreRegisterForm() {
 
   // Tag
   const [qrRaw, setQrRaw] = useState("");
+  const [scanning, setScanning] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -280,23 +282,48 @@ export default function PreRegisterForm() {
       {/* Tag assignment */}
       <div className="bg-white rounded-2xl border border-gray-200 p-6 space-y-3">
         <h2 className="font-semibold text-gray-900">Assign keyring tag</h2>
-        <p className="text-xs text-gray-500">
-          Scan the physical keyring QR code with your phone camera and paste the link below,
-          or type the tag ID directly.
-        </p>
-        <input
-          required
-          value={qrRaw}
-          onChange={e => setQrRaw(e.target.value)}
-          placeholder="Paste scan link or tag ID"
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 font-mono focus:outline-none focus:ring-2 focus:ring-orange-500"
-        />
-        {qrRaw && (
-          <p className="text-xs text-gray-400">
-            Tag ID: <span className="font-mono text-gray-700">{extractQrId(qrRaw)}</span>
-          </p>
+
+        {qrRaw ? (
+          <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-xl px-4 py-3">
+            <div>
+              <p className="text-xs font-medium text-green-800">Tag scanned</p>
+              <p className="text-xs text-green-700 font-mono mt-0.5">{extractQrId(qrRaw)}</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setQrRaw("")}
+              className="text-xs text-green-700 hover:text-green-900 underline ml-4"
+            >
+              Clear
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setScanning(true)}
+            className="w-full flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 rounded-xl text-sm transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 7V5a2 2 0 012-2h2M3 17v2a2 2 0 002 2h2M17 3h2a2 2 0 012 2v2M17 21h2a2 2 0 002-2v-2M7 12h10" />
+            </svg>
+            Scan keyring tag
+          </button>
         )}
+
+        {/* Hidden required field so form validation still works */}
+        <input
+          type="hidden"
+          required
+          value={extractQrId(qrRaw)}
+        />
       </div>
+
+      {scanning && (
+        <TagScanner
+          onScan={(raw) => { setQrRaw(raw); setScanning(false); }}
+          onClose={() => setScanning(false)}
+        />
+      )}
 
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700">
