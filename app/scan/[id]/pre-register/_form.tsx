@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 
 const APPLIANCE_OPTIONS = [
   { value: "stove", label: "Stove / Hob" },
@@ -14,7 +13,6 @@ const APPLIANCE_OPTIONS = [
 const CYLINDER_SIZES = [3, 5, 7, 9, 14, 19, 48];
 
 export default function ScanPreRegisterForm({ qrCodeId }: { qrCodeId: string }) {
-  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -85,12 +83,7 @@ export default function ScanPreRegisterForm({ qrCodeId }: { qrCodeId: string }) 
         <p className="text-sm text-gray-500">
           The profile is live and reminders are scheduled. Place this keyring in the client's delivery pack.
         </p>
-        <button
-          onClick={() => router.push("/vendor/dashboard?tab=clients")}
-          className="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-5 py-2 rounded-xl text-sm transition-colors"
-        >
-          View all clients
-        </button>
+        <p className="text-xs text-gray-400">You can close this page.</p>
       </div>
     );
   }
