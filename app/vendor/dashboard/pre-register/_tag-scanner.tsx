@@ -19,10 +19,17 @@ export default function TagScanner({
     let cancelled = false;
 
     async function start() {
+      let stream: MediaStream;
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: "environment" },
-        });
+        // Prefer rear camera; some older Android phones reject the facingMode
+        // constraint even when a camera is available, so fall back to any camera.
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: "environment" },
+          });
+        } catch {
+          stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        }
         if (cancelled) { stream.getTracks().forEach(t => t.stop()); return; }
         streamRef.current = stream;
         if (!videoRef.current) return;

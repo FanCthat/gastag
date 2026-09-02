@@ -310,12 +310,6 @@ export default function PreRegisterForm() {
           </button>
         )}
 
-        {/* Hidden required field so form validation still works */}
-        <input
-          type="hidden"
-          required
-          value={extractQrId(qrRaw)}
-        />
       </div>
 
       {scanning && (
