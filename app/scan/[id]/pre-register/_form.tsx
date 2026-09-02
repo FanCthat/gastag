@@ -13,36 +13,29 @@ const APPLIANCE_OPTIONS = [
 
 const CYLINDER_SIZES = [3, 5, 7, 9, 14, 19, 48];
 
-export default function PreRegisterForm() {
+export default function ScanPreRegisterForm({ qrCodeId }: { qrCodeId: string }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
-  // Client details
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [deliveryAddress, setDeliveryAddress] = useState("");
 
-  // Appliance
   const [applianceType, setApplianceType] = useState("stove");
   const [cylinderSizeKg, setCylinderSizeKg] = useState("9");
 
-  // Prediction
   const [predictionBasis, setPredictionBasis] = useState<"measured" | "estimate" | "industry">("measured");
   const [lastPurchaseDate, setLastPurchaseDate] = useState("");
   const [previousPurchaseDate, setPreviousPurchaseDate] = useState("");
   const [estimateMonths, setEstimateMonths] = useState("");
 
-  // Tag
-  const [qrCodeId, setQrCodeId] = useState("");
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
 
-    if (!qrCodeId.trim()) { setError("Please enter the keyring tag ID."); return; }
     if (predictionBasis === "measured" && !previousPurchaseDate) {
       setError("Please enter the previous purchase date for measured prediction.");
       return;
@@ -54,11 +47,10 @@ export default function PreRegisterForm() {
 
     setLoading(true);
     try {
-      const res = await fetch("/api/vendor/pre-register", {
+      const res = await fetch(`/api/admin-pin/${qrCodeId}/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          qrCodeId: qrCodeId.trim(),
           name,
           phone,
           email: email || null,
@@ -72,6 +64,10 @@ export default function PreRegisterForm() {
         }),
       });
       const data = await res.json();
+      if (res.status === 401 || res.status === 403) {
+        setError("Admin session expired. Please go back and enter your PIN again.");
+        return;
+      }
       if (!res.ok) { setError(data.error ?? "Something went wrong."); return; }
       setSuccess(true);
     } catch {
@@ -87,29 +83,14 @@ export default function PreRegisterForm() {
         <div className="text-4xl">✅</div>
         <h2 className="text-xl font-bold text-gray-900">Client registered</h2>
         <p className="text-sm text-gray-500">
-          The profile is live and reminders are scheduled. Place the keyring in the client's delivery pack.
+          The profile is live and reminders are scheduled. Place this keyring in the client's delivery pack.
         </p>
-        <div className="flex gap-3 justify-center pt-2">
-          <button
-            onClick={() => {
-              setSuccess(false);
-              setName(""); setPhone(""); setEmail(""); setDeliveryAddress("");
-              setApplianceType("stove"); setCylinderSizeKg("9");
-              setPredictionBasis("measured");
-              setLastPurchaseDate(""); setPreviousPurchaseDate(""); setEstimateMonths("");
-              setQrCodeId("");
-            }}
-            className="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-5 py-2 rounded-xl text-sm transition-colors"
-          >
-            Register another client
-          </button>
-          <button
-            onClick={() => router.push("/vendor/dashboard?tab=clients")}
-            className="border border-gray-200 text-gray-700 font-medium px-5 py-2 rounded-xl text-sm hover:bg-gray-50 transition-colors"
-          >
-            View all clients
-          </button>
-        </div>
+        <button
+          onClick={() => router.push("/vendor/dashboard?tab=clients")}
+          className="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-5 py-2 rounded-xl text-sm transition-colors"
+        >
+          View all clients
+        </button>
       </div>
     );
   }
@@ -117,7 +98,6 @@ export default function PreRegisterForm() {
   return (
     <form onSubmit={handleSubmit} className="max-w-lg mx-auto mt-6 space-y-6">
 
-      {/* Client details */}
       <div className="bg-white rounded-2xl border border-gray-200 p-6 space-y-4">
         <h2 className="font-semibold text-gray-900">Client details</h2>
 
@@ -168,10 +148,8 @@ export default function PreRegisterForm() {
         </div>
       </div>
 
-      {/* Appliance */}
       <div className="bg-white rounded-2xl border border-gray-200 p-6 space-y-4">
         <h2 className="font-semibold text-gray-900">Appliance</h2>
-
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">Appliance type</label>
@@ -200,7 +178,6 @@ export default function PreRegisterForm() {
         </div>
       </div>
 
-      {/* Prediction basis */}
       <div className="bg-white rounded-2xl border border-gray-200 p-6 space-y-4">
         <h2 className="font-semibold text-gray-900">Empty-date estimate</h2>
 
@@ -224,7 +201,6 @@ export default function PreRegisterForm() {
           ))}
         </div>
 
-        {/* Last purchase date — shown for all bases */}
         <div>
           <label className="block text-xs font-medium text-gray-600 mb-1">
             Last purchase date <span className="text-gray-400">(optional — leave blank to anchor from today)</span>
@@ -267,22 +243,6 @@ export default function PreRegisterForm() {
             />
           </div>
         )}
-      </div>
-
-      {/* Tag assignment */}
-      <div className="bg-white rounded-2xl border border-gray-200 p-6 space-y-3">
-        <h2 className="font-semibold text-gray-900">Assign keyring tag</h2>
-        <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1">Tag ID <span className="text-red-500">*</span></label>
-          <input
-            required
-            value={qrCodeId}
-            onChange={e => setQrCodeId(e.target.value)}
-            placeholder="Paste or type the tag ID"
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500"
-          />
-          <p className="text-xs text-gray-400 mt-1">Found on the tag's QR link — or use the scan-and-tap flow from your phone.</p>
-        </div>
       </div>
 
       {error && (
