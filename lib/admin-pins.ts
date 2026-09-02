@@ -11,7 +11,7 @@ export function verifyPin(entered: string): { valid: true; name: string } | { va
     return { valid: false };
   }
 
-  const enteredHash = createHash("sha256").update(entered).digest("hex");
+  const enteredHash = createHash("sha256").update(entered.toUpperCase()).digest("hex");
 
   for (const p of pins) {
     if (
