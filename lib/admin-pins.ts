@@ -4,12 +4,16 @@ export function verifyPin(entered: string): { valid: true; name: string } | { va
   const raw = process.env.VENDOR_ADMIN_PINS;
   if (!raw) return { valid: false };
 
-  let pins: Array<{ hash: string; name: string }>;
-  try {
-    pins = JSON.parse(raw.replace(/[\x00-\x1F\x7F]+/g, ""));
-  } catch {
-    return { valid: false };
-  }
+  // Format: hash:name,hash:name (no JSON — avoids Vercel paste corruption)
+  const pins = raw
+    .split(",")
+    .map(entry => entry.trim())
+    .filter(entry => entry.includes(":"))
+    .map(entry => {
+      const colon = entry.indexOf(":");
+      return { hash: entry.slice(0, colon).trim(), name: entry.slice(colon + 1).trim() };
+    })
+    .filter(p => p.hash.length === 64);
 
   const enteredHash = createHash("sha256").update(entered.toUpperCase()).digest("hex");
 
