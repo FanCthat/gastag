@@ -12,6 +12,10 @@ export function verifyPin(entered: string): { valid: true; name: string } | { va
   }
 
   const enteredHash = createHash("sha256").update(entered.toUpperCase()).digest("hex");
+  console.log("[verifyPin] pins count:", pins.length);
+  console.log("[verifyPin] enteredHash:", enteredHash);
+  console.log("[verifyPin] storedHash[0]:", pins[0]?.hash);
+  console.log("[verifyPin] lengths:", pins[0]?.hash?.length, enteredHash.length);
 
   for (const p of pins) {
     if (
