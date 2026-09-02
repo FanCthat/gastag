@@ -258,7 +258,7 @@ export default function VendorDetailClient({ vendor }: { vendor: Vendor }) {
             max={500}
             value={qrCount}
             onChange={e => setQrCount(parseInt(e.target.value) || 1)}
-            className="w-24 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+            className="w-24 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500"
           />
           <button
             onClick={generateQR}

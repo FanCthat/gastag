@@ -43,14 +43,16 @@ model Vendor {
 }
 
 model QRCode {
-  id           String    @id @default(cuid())
-  vendorId     String
-  state        String    @default("unregistered") // unregistered | pre_registered | registered | replaced
-  isTrialCode  Boolean   @default(false)
-  createdAt    DateTime  @default(now())
-  registeredAt DateTime?
-  vendor       Vendor    @relation(fields: [vendorId], references: [id], onDelete: Cascade)
-  client       Client?
+  id                  String    @id @default(cuid())
+  vendorId            String
+  state               String    @default("unregistered") // unregistered | pre_registered | registered | replaced
+  isTrialCode         Boolean   @default(false)
+  createdAt           DateTime  @default(now())
+  registeredAt        DateTime?
+  adminPinAttempts    Int       @default(0)
+  adminPinLockedUntil DateTime?
+  vendor              Vendor    @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  client              Client?
 
   @@index([vendorId])
   @@index([state])

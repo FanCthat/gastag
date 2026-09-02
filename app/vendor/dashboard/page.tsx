@@ -104,19 +104,21 @@ export default async function VendorDashboard({ searchParams }: { searchParams: 
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-        <div>
-          <h1 className="text-lg font-bold text-gray-900">{vendor?.name}</h1>
-          <p className="text-xs text-gray-400">GasTag Supplier Portal</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <Link
-            href="/vendor/dashboard/pre-register"
-            className="text-xs font-medium bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg transition-colors"
-          >
-            + Pre-register client
-          </Link>
-          <VendorNav activeTab={tab} pendingCount={pendingOrders.length} />
+      <header className="bg-white border-b border-gray-200 px-4 md:px-6 py-3 md:py-4">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h1 className="text-base md:text-lg font-bold text-gray-900 truncate">{vendor?.name}</h1>
+            <p className="text-xs text-gray-400">GasTag Supplier Portal</p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 justify-end shrink-0">
+            <Link
+              href="/vendor/dashboard/pre-register"
+              className="text-xs font-medium bg-orange-500 hover:bg-orange-600 text-white px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap"
+            >
+              + Pre-register
+            </Link>
+            <VendorNav activeTab={tab} pendingCount={pendingOrders.length} />
+          </div>
         </div>
       </header>
 
