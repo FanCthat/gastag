@@ -60,7 +60,6 @@ export default function AdminPinSection({ qrCodeId }: { qrCodeId: string }) {
       <form onSubmit={handleSubmit} className="space-y-3">
         <input
           type="password"
-          inputMode="numeric"
           value={pin}
           onChange={e => setPin(e.target.value)}
           placeholder="PIN"
