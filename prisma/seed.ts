@@ -37,19 +37,19 @@ async function main() {
     {
       type: "6week",
       subject: "Your gas cylinder is due in about 6 weeks",
-      bodyHtml: `<p>Hi {{clientName}},</p><p>Just a heads-up — your <strong>{{applianceType}}</strong> cylinder is predicted to run out around <strong>{{predictedEmptyDate}}</strong>. That's about 6 weeks away.</p><p><a href="{{reorderUrl}}">Order your replacement now →</a></p>`,
+      bodyHtml: `<p>Hi {{clientName}},</p><p>Just a heads-up — your <strong>{{applianceType}}</strong> cylinder is predicted to run out around <strong>{{predictedEmptyDate}}</strong>. That's about 6 weeks away.</p><p><a href="{{reorderUrl}}" style="display:inline-block;background-color:#f97316;color:#ffffff;font-weight:600;padding:12px 24px;border-radius:8px;text-decoration:none;font-size:14px;line-height:1.4">Order your replacement now &rarr;</a></p>`,
       bodyText: `Hi {{clientName}}, your {{applianceType}} cylinder is predicted to run out around {{predictedEmptyDate}} (about 6 weeks). Order now: {{reorderUrl}}`,
     },
     {
       type: "3week",
       subject: "3 weeks until your gas runs out",
-      bodyHtml: `<p>Hi {{clientName}},</p><p>Your <strong>{{applianceType}}</strong> cylinder is predicted to run out around <strong>{{predictedEmptyDate}}</strong> — just 3 weeks away.</p><p><a href="{{reorderUrl}}">Place your order now →</a></p>`,
+      bodyHtml: `<p>Hi {{clientName}},</p><p>Your <strong>{{applianceType}}</strong> cylinder is predicted to run out around <strong>{{predictedEmptyDate}}</strong> — just 3 weeks away.</p><p><a href="{{reorderUrl}}" style="display:inline-block;background-color:#f97316;color:#ffffff;font-weight:600;padding:12px 24px;border-radius:8px;text-decoration:none;font-size:14px;line-height:1.4">Place your order now &rarr;</a></p>`,
       bodyText: `Hi {{clientName}}, your {{applianceType}} cylinder runs out around {{predictedEmptyDate}} — 3 weeks away. Order: {{reorderUrl}}`,
     },
     {
       type: "duedate",
       subject: "Your gas cylinder is due today",
-      bodyHtml: `<p>Hi {{clientName}},</p><p>Today is the predicted empty date for your <strong>{{applianceType}}</strong> cylinder. If you haven't ordered yet, now is the time.</p><p><a href="{{reorderUrl}}">Order your replacement →</a></p>`,
+      bodyHtml: `<p>Hi {{clientName}},</p><p>Today is the predicted empty date for your <strong>{{applianceType}}</strong> cylinder. If you haven't ordered yet, now is the time.</p><p><a href="{{reorderUrl}}" style="display:inline-block;background-color:#f97316;color:#ffffff;font-weight:600;padding:12px 24px;border-radius:8px;text-decoration:none;font-size:14px;line-height:1.4">Order your replacement &rarr;</a></p>`,
       bodyText: `Hi {{clientName}}, today is the predicted empty date for your {{applianceType}} cylinder. Order now: {{reorderUrl}}`,
     },
     {
