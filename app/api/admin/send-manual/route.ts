@@ -56,10 +56,10 @@ export async function GET(req: NextRequest) {
 <p>GasTag is a smart gas cylinder tracking system. Here's how it works from start to finish:</p>
 <ol>
   <li>A gas supplier (we call them a <strong>Vendor</strong>) joins GasTag.</li>
-  <li>You generate QR codes for that vendor, send them to the printer, and they are made into <strong>domed keyring tags</strong> — one side has the supplier's logo, the other has the QR code. The supplier distributes these to their clients.</li>
+  <li>You generate QR codes for that vendor, send them to the printer, and they are made into <strong>domed QR tags</strong> — one side has the supplier's logo, the other has the QR code. The supplier distributes these to their clients.</li>
   <li>The client scans the QR code once to register — they enter their name, email, delivery address, and identify the gas appliances they run on cylinders.</li>
   <li>GasTag calculates when each cylinder is likely to run out, based on the client's own estimate, and sends automatic reminder emails — 6 weeks before, 3 weeks before, and on the due date.</li>
-  <li>When the client is ready to order, they scan their keyring tag and tap a button — the supplier gets an email alert immediately.</li>
+  <li>When the client is ready to order, they scan their tag and tap a button — the supplier gets an email alert immediately.</li>
   <li>The supplier delivers and confirms it in their portal — the client gets a confirmation email and the clock starts again for the next cylinder.</li>
 </ol>
 <p><strong>Nobody needs to remember anything.</strong> The system does it all.</p>
@@ -98,7 +98,7 @@ export async function GET(req: NextRequest) {
 <div class="step"><strong>Step 4.</strong> Click <strong>Create vendor</strong>.</div>
 <div class="step"><strong>Step 5.</strong> On the vendors list, click <strong>Manage →</strong> next to the new vendor.</div>
 <div class="step"><strong>Step 6.</strong> In the <strong>Generate QR codes</strong> section, type in how many codes you want (start with 20–50) and click <strong>Download ZIP</strong>. A ZIP file downloads with one PNG image per QR code.</div>
-<div class="step"><strong>Step 7.</strong> Send the ZIP to your printer. They produce domed keyring tags — supplier logo on one side, QR code on the other — and deliver them to the supplier.</div>
+<div class="step"><strong>Step 7.</strong> Send the ZIP to your printer. They produce domed QR tags — supplier logo on one side, QR code on the other — and deliver them to the supplier.</div>
 
 <div class="note">Each QR code is unique and linked to that vendor. Once a client registers with a code, scanning it again takes them straight to their account.</div>
 
@@ -108,12 +108,12 @@ export async function GET(req: NextRequest) {
 
 <hr/>
 
-<h2>Part 3 — What to Do if a Client Loses Their Keyring Tag</h2>
+<h2>Part 3 — What to Do if a Client Loses Their Tag</h2>
 <p class="section-intro">The client's account and history are never lost — only the physical tag needs replacing.</p>
 
 <div class="step"><strong>Step 1.</strong> Get a replacement QR code from the supplier's unregistered pool (they should always have spares — if not, generate more from the admin).</div>
 <div class="step"><strong>Step 2.</strong> Log into the admin, go to <strong>Vendors → Manage →</strong> for that supplier.</div>
-<div class="step"><strong>Step 3.</strong> Scroll to the <strong>Replace a client's lost keyring tag</strong> section at the bottom of the page.</div>
+<div class="step"><strong>Step 3.</strong> Scroll to the <strong>Replace a client's lost tag</strong> section at the bottom of the page.</div>
 <div class="step"><strong>Step 4.</strong> Select the client from the dropdown, select an unregistered QR code, and click <strong>Replace tag</strong>.</div>
 <div class="step"><strong>Step 5.</strong> The new tag is now linked to the client's existing account. Their order history and cylinder predictions are all preserved. When they scan the new tag, they land on their account as usual.</div>
 
@@ -146,8 +146,8 @@ export async function GET(req: NextRequest) {
 <h2>Part 5 — The Client Experience</h2>
 <p class="section-intro">This is what happens from the client's point of view. Explain this to the supplier so they can walk their clients through it.</p>
 
-<h3>Step 1: The client gets their GasTag keyring tag</h3>
-<p>The supplier hands the client a domed keyring tag. One side has the supplier's logo; the other side has the QR code. The client attaches it to their keys so it's always with them.</p>
+<h3>Step 1: The client gets their GasTag</h3>
+<p>The supplier gives the client their GasTag — a domed QR tag. One side has the supplier's logo; the other side has the QR code. The client keeps it somewhere handy, such as on their fridge or with their keys.</p>
 
 <h3>Step 2: The client scans and registers (once only)</h3>
 <p>The client scans the QR code on the tag with their phone camera — no app needed, the phone's built-in camera does it. They land on a registration page and fill in:</p>
@@ -170,7 +170,7 @@ export async function GET(req: NextRequest) {
 </table>
 
 <h3>Step 4: Placing an order</h3>
-<p>When the client is ready to order, they scan their keyring tag — it takes them straight to their account page. From there they tap <strong>Order gas now</strong>, confirm which cylinders they need and their delivery address, then tap <strong>Place order</strong>.</p>
+<p>When the client is ready to order, they scan their tag — it takes them straight to their account page. From there they tap <strong>Order gas now</strong>, confirm which cylinders they need and their delivery address, then tap <strong>Place order</strong>.</p>
 <p>The supplier gets an email immediately. The client sees a confirmation screen and can tap <strong>View my account →</strong> to see the order listed as Pending.</p>
 
 <h3>Step 5: After delivery</h3>
@@ -187,12 +187,12 @@ export async function GET(req: NextRequest) {
   <tr><th>Who</th><th>Website</th><th>What they do there</th></tr>
   <tr><td>Karl / Paul (Admin)</td><td>gastag.vercel.app/admin/login</td><td>Manage vendors, generate QR codes, replace lost tags, view system stats</td></tr>
   <tr><td>Gas Supplier (Vendor)</td><td>gastag.vercel.app/vendor/login</td><td>See incoming orders, confirm deliveries, view client list</td></tr>
-  <tr><td>End Client</td><td>Scan keyring tag</td><td>Register once, place orders, receive automatic reminders</td></tr>
+  <tr><td>End Client</td><td>Scan GasTag</td><td>Register once, place orders, receive automatic reminders</td></tr>
 </table>
 
 <h3>Common questions:</h3>
 
-<p><strong>What if a client loses their keyring tag?</strong><br/>
+<p><strong>What if a client loses their tag?</strong><br/>
 See Part 3 above. The client's account and history are never lost. You simply link a new tag to their existing account in the admin — takes about 30 seconds.</p>
 
 <p><strong>What if a client changes their delivery address?</strong><br/>

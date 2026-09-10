@@ -40,7 +40,7 @@ export default async function ReorderPage({ params }: { params: Promise<{ id: st
           <div className="space-y-2">
             <h1 className="text-xl font-bold text-gray-900">Order gas</h1>
             <p className="text-sm text-gray-500">
-              To place an order, we first need to confirm this is your keyring.
+              To place an order, we first need to confirm this is your tag.
             </p>
           </div>
           <Link

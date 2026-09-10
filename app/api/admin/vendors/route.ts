@@ -112,7 +112,7 @@ export async function POST(req: NextRequest) {
                 <li>Over the next 6 days you'll receive the full sequence your real customers will experience</li>
               </ol>
               <p style="color:#374151;line-height:1.65;margin:0 0 20px;">
-                After day 7, Paul will be in touch to discuss your keyring order and getting your first real clients on board.
+                After day 7, Paul will be in touch to discuss your tag order and getting your first real clients on board.
               </p>
               <p style="font-size:12px;color:#9ca3af;">
                 Questions? Call or WhatsApp Paul on

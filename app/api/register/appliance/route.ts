@@ -97,7 +97,7 @@ export async function POST(req: NextRequest) {
             <div style="background:white;padding:28px 24px;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 8px 8px;">
               <h2 style="color:#111827;margin:0 0 12px;">Your cylinder is getting low, ${firstName}</h2>
               <p style="color:#374151;margin:0 0 12px;">This is your early warning — your cylinder is approaching empty and now is the ideal time to arrange a refill.</p>
-              <p style="color:#374151;margin:0 0 20px;">When you're ready to reorder, simply <strong>scan the QR code on your keyring</strong> — it takes you straight to your order page. No app, no login needed.</p>
+              <p style="color:#374151;margin:0 0 20px;">When you're ready to reorder, simply <strong>scan your GasTag QR code</strong> — it takes you straight to your order page. No app, no login needed.</p>
               <div style="margin-top:24px;padding-top:20px;border-top:1px solid #e5e7eb;">
                 <p style="color:#6b7280;font-size:13px;margin:0 0 4px;">In live operation, this reminder arrives <strong>6 weeks</strong> before your cylinder is predicted empty. The next reminder arrives <strong>3 weeks</strong> after that.</p>
                 <p style="color:#6b7280;font-size:13px;margin:0 0 12px;">In this demo, time is compressed for your convenience!</p>

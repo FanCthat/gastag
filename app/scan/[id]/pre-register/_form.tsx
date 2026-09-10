@@ -81,7 +81,7 @@ export default function ScanPreRegisterForm({ qrCodeId }: { qrCodeId: string }) 
         <div className="text-4xl">✅</div>
         <h2 className="text-xl font-bold text-gray-900">Client registered</h2>
         <p className="text-sm text-gray-500">
-          The profile is live and reminders are scheduled. Place this keyring in the client's delivery pack.
+          The profile is live and reminders are scheduled. Place this tag in the client's delivery pack.
         </p>
         <p className="text-xs text-gray-400">You can close this page.</p>
       </div>

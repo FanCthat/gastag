@@ -71,7 +71,7 @@ export async function GET(req: NextRequest) {
                 Log in anytime to see how the dashboard looks.
               </p>
               <p style="color:#374151;line-height:1.65;margin:0 0 24px;">
-                <strong>Paul will be in touch shortly</strong> to discuss your keyring order and next steps.
+                <strong>Paul will be in touch shortly</strong> to discuss your tag order and next steps.
                 No action needed from you right now.
               </p>
               <p style="font-size:12px;color:#9ca3af;">

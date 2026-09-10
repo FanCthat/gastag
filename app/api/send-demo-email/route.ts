@@ -50,7 +50,7 @@ function emailContent(step: 1 | 2 | 3, email: string): { subject: string; html: 
                 <span style="font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;background:#e8f5ee;color:#1a6644;">~6 weeks</span>
               </div>
               <p style="font-size:14px;color:#3a3a36;line-height:1.65;margin-bottom:0;">
-                When you're ready to reorder, simply scan the <strong>GasTag keyring</strong> on your gas regulator — it takes less than a minute.
+                When you're ready to reorder, simply scan your <strong>GasTag</strong> — it takes less than a minute.
               </p>
               ${footer}
               <div style="margin-top:20px;padding-top:16px;border-top:1px solid #eee;text-align:center;">

@@ -24,7 +24,7 @@ export default function DemoRegisterPage() {
             </li>
             <li className="flex gap-3">
               <span className="flex-shrink-0 w-5 h-5 bg-orange-500 text-white text-xs font-bold rounded-full flex items-center justify-center mt-0.5">2</span>
-              <span>You get 3 demo QR codes — these represent the keyring tags your customers will receive.</span>
+              <span>You get 3 demo QR codes — these represent the tags your customers will receive.</span>
             </li>
             <li className="flex gap-3">
               <span className="flex-shrink-0 w-5 h-5 bg-orange-500 text-white text-xs font-bold rounded-full flex items-center justify-center mt-0.5">3</span>

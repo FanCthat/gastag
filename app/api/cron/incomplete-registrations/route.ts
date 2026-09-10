@@ -13,7 +13,7 @@ function html(vendor: { contactName: string }, client: { name: string; email: st
   });
   return `
     <p>Hi ${vendor.contactName},</p>
-    <p>Someone scanned one of your GasTag keyrings and started registering, but didn't finish — they entered their contact details and then stopped before adding their cylinder information.</p>
+    <p>Someone scanned one of your GasTag QR codes and started registering, but didn't finish — they entered their contact details and then stopped before adding their cylinder information.</p>
     <p><strong>Name:</strong> ${client.name}<br>
     <strong>Email:</strong> ${client.email}<br>
     ${client.phone ? `<strong>Phone:</strong> ${client.phone}<br>` : ""}

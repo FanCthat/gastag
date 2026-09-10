@@ -151,10 +151,10 @@ export default function ConfirmShell({
           <span className="text-white text-2xl font-bold">G</span>
         </div>
         <div className="space-y-2">
-          <h1 className="text-xl font-bold text-gray-900">Is this your keyring?</h1>
+          <h1 className="text-xl font-bold text-gray-900">Is this your tag?</h1>
           <p className="text-sm text-gray-500">
             Enter the phone number on your account to verify it's yours.
-            If you found this keyring, please return it to its owner.
+            If you found this, please return it to its owner.
           </p>
         </div>
         <div className="text-left">
@@ -194,7 +194,7 @@ export default function ConfirmShell({
           <div className="bg-gray-100 border border-gray-300 rounded-xl p-4 flex items-start justify-between gap-3">
             <div>
               <p className="text-sm font-semibold text-gray-800">Reminders are paused</p>
-              <p className="text-xs text-gray-500 mt-0.5">Your keyring still works for reordering. You won't receive reminder emails.</p>
+              <p className="text-xs text-gray-500 mt-0.5">Your tag still works for reordering. You won't receive reminder emails.</p>
             </div>
             <button
               type="button"
@@ -260,7 +260,7 @@ export default function ConfirmShell({
           <div>
             <p className="text-sm font-semibold text-gray-900">Pause reminder emails</p>
             <p className="text-xs text-gray-500 mt-1">
-              Stop receiving reminder emails. Your account stays active and your keyring still works — you can scan at any time to reorder gas. You can turn reminders back on whenever you like.
+              Stop receiving reminder emails. Your account stays active and your tag still works — you can scan at any time to reorder gas. You can turn reminders back on whenever you like.
             </p>
           </div>
           <button
@@ -276,7 +276,7 @@ export default function ConfirmShell({
           <div>
             <p className="text-sm font-semibold text-gray-900">Remove me from GasTag entirely</p>
             <p className="text-xs text-gray-500 mt-1">
-              Your supplier will be asked to delete your record and retire your keyring. This cannot be undone.
+              Your supplier will be asked to delete your record and retire your tag. This cannot be undone.
             </p>
           </div>
           <button
@@ -305,7 +305,7 @@ export default function ConfirmShell({
         <div className="text-4xl">🔕</div>
         <h1 className="text-xl font-bold text-gray-900">Reminders paused</h1>
         <p className="text-sm text-gray-500">
-          You won't receive reminder emails. Your keyring still works — scan it any time to reorder gas.
+          You won't receive reminder emails. Your tag still works — scan it any time to reorder gas.
         </p>
         <button
           onClick={handleUnmute}
@@ -325,7 +325,7 @@ export default function ConfirmShell({
         <div className="text-4xl">✅</div>
         <h1 className="text-xl font-bold text-gray-900">All set!</h1>
         <p className="text-sm text-gray-500">
-          Your details are confirmed. You'll receive a reminder before your cylinder runs out — just scan this keyring when you're ready to order.
+          Your details are confirmed. You'll receive a reminder before your cylinder runs out — just scan your tag when you're ready to order.
         </p>
       </div>
     );

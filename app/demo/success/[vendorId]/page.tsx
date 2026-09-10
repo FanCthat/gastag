@@ -87,7 +87,7 @@ export default async function DemoSuccessPage({
                   You don't need to download anything. If scanning doesn't work on your phone, tap the blue link underneath the code instead.
                 </p>
                 <p className="text-xs text-gray-400 mt-1">
-                  (Each code represents one of the keyring tags your real customers will receive when they buy gas from you.)
+                  (Each code represents one of the tags your real customers will receive when they buy gas from you.)
                 </p>
               </div>
             </li>

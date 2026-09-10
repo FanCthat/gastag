@@ -42,7 +42,7 @@ export default function PreRegisterForm() {
     e.preventDefault();
     setError(null);
 
-    if (!qrCodeId.trim()) { setError("Please enter the keyring tag ID."); return; }
+    if (!qrCodeId.trim()) { setError("Please enter the tag ID."); return; }
     if (predictionBasis === "measured" && !previousPurchaseDate) {
       setError("Please enter the previous purchase date for measured prediction.");
       return;
@@ -87,7 +87,7 @@ export default function PreRegisterForm() {
         <div className="text-4xl">✅</div>
         <h2 className="text-xl font-bold text-gray-900">Client registered</h2>
         <p className="text-sm text-gray-500">
-          The profile is live and reminders are scheduled. Place the keyring in the client's delivery pack.
+          The profile is live and reminders are scheduled. Place the tag in the client's delivery pack.
         </p>
         <div className="flex gap-3 justify-center pt-2">
           <button
@@ -271,7 +271,7 @@ export default function PreRegisterForm() {
 
       {/* Tag assignment */}
       <div className="bg-white rounded-2xl border border-gray-200 p-6 space-y-3">
-        <h2 className="font-semibold text-gray-900">Assign keyring tag</h2>
+        <h2 className="font-semibold text-gray-900">Assign tag</h2>
         <div>
           <label className="block text-xs font-medium text-gray-600 mb-1">Tag ID <span className="text-red-500">*</span></label>
           <input

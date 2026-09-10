@@ -36,7 +36,7 @@ export default function ReplaceQR({ clients, unregisteredQRs }: { clients: Clien
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-5">
-      <div className="font-medium text-gray-900 mb-1">Replace a client's lost keyring tag</div>
+      <div className="font-medium text-gray-900 mb-1">Replace a client's lost tag</div>
       <p className="text-xs text-gray-500 mb-4">Select the client and an unregistered QR code to assign to them. Their account history is preserved.</p>
       {unregisteredQRs.length === 0 ? (
         <p className="text-sm text-amber-600">No unregistered QR codes available — generate more first.</p>

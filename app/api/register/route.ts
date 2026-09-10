@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
       subject: `New registration — ${name}`,
       html: `
         <p>Hi ${vendor.name},</p>
-        <p>A new client has just registered a GasTag keyring.</p>
+        <p>A new client has just registered with GasTag.</p>
         <p>
           <strong>Name:</strong> ${name}<br/>
           <strong>Email:</strong> ${email}<br/>

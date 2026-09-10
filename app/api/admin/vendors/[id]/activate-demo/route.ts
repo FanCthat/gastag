@@ -43,7 +43,7 @@ export async function POST(_: NextRequest, { params }: { params: Promise<{ id: s
         <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:white;padding:28px 24px;border:1px solid #e5e7eb;border-radius:8px;">
           <h2 style="color:#111827;margin:0 0 16px;">Welcome to GasTag, ${vendor.contactName}!</h2>
           <p style="color:#374151;margin:0 0 12px;">Your GasTag supplier account is now active and ready to use.</p>
-          <p style="color:#374151;margin:0 0 20px;">Your first batch of QR keyrings is on its way. Log in to your supplier dashboard to get started.</p>
+          <p style="color:#374151;margin:0 0 20px;">Your first batch of GasTag QR codes is on its way. Log in to your supplier dashboard to get started.</p>
           <a href="${vendorLoginUrl}" style="background:#f97316;color:white;padding:12px 28px;border-radius:8px;text-decoration:none;display:inline-block;font-weight:bold;">Log in to your dashboard →</a>
           <p style="color:#6b7280;font-size:12px;margin-top:24px;">If you have any questions, reply to this email and we'll help you get set up.</p>
         </div>

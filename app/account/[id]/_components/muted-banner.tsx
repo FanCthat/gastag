@@ -31,7 +31,7 @@ export default function MutedBanner({ clientId }: { clientId: string }) {
     <div className="rounded-xl bg-gray-100 border border-gray-300 px-4 py-3 flex items-start justify-between gap-3">
       <div>
         <p className="text-sm font-semibold text-gray-800">Reminders are paused</p>
-        <p className="text-xs text-gray-500 mt-0.5">You won't receive reminder emails. Your keyring still works for reordering.</p>
+        <p className="text-xs text-gray-500 mt-0.5">You won't receive reminder emails. Your tag still works for reordering.</p>
       </div>
       <button
         onClick={handleUnmute}

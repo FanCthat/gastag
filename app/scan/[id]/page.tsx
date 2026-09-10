@@ -16,7 +16,7 @@ export default async function ScanPage({ params }: { params: Promise<{ id: strin
         <div className="bg-white rounded-2xl border border-gray-200 p-8 max-w-sm text-center">
           <div className="text-4xl mb-4">🔄</div>
           <h2 className="text-xl font-bold text-gray-900 mb-2">This tag has been replaced</h2>
-          <p className="text-sm text-gray-500">Please use your new GasTag keyring tag to access your account.</p>
+          <p className="text-sm text-gray-500">Please use your new GasTag to access your account.</p>
         </div>
       </div>
     );
@@ -39,7 +39,7 @@ export default async function ScanPage({ params }: { params: Promise<{ id: strin
           <div className="inline-flex items-center justify-center w-14 h-14 bg-orange-500 rounded-2xl mb-1">
             <span className="text-white text-2xl font-bold">G</span>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">GasTag keyring</h1>
+          <h1 className="text-2xl font-bold text-gray-900">GasTag</h1>
           <p className="text-sm text-gray-500">
             Supplied by <span className="font-medium text-gray-700">{qr.vendor.name}</span>
           </p>
@@ -47,7 +47,7 @@ export default async function ScanPage({ params }: { params: Promise<{ id: strin
 
         <div className="bg-white rounded-2xl border border-gray-200 p-6 space-y-4">
           <div>
-            <p className="text-sm font-semibold text-gray-900">Is this keyring yours?</p>
+            <p className="text-sm font-semibold text-gray-900">Is this your tag?</p>
             <p className="text-xs text-gray-500 mt-1">
               Register it in two minutes. We'll remind you before your gas runs out so you never get caught empty.
             </p>
@@ -56,7 +56,7 @@ export default async function ScanPage({ params }: { params: Promise<{ id: strin
             href={`/register/${id}`}
             className="block w-full text-center bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 rounded-xl text-sm transition-colors"
           >
-            Register my keyring
+            Register my tag
           </Link>
         </div>
 

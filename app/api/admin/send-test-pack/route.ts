@@ -142,7 +142,7 @@ export async function GET(req: NextRequest) {
 
 <!-- SCENARIO 5 -->
 <div class="scenario">
-  <h3><span class="num">5</span> Replace a lost keyring tag <span class="tag paul">Admin</span></h3>
+  <h3><span class="num">5</span> Replace a lost tag <span class="tag paul">Admin</span></h3>
 
   <div class="step"><span class="num">→</span> In Admin → Vendors → Manage (GasTag Test Supplier)</div>
   <div class="step"><span class="num">→</span> Scroll to the <b>Replace a client's lost tag</b> section</div>

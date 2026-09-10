@@ -59,16 +59,16 @@ export default async function AccountPage({ params }: { params: Promise<{ id: st
             <span className="text-white text-2xl font-bold">G</span>
           </div>
           <div className="space-y-2">
-            <h1 className="text-xl font-bold text-gray-900">This is a GasSA keyring</h1>
+            <h1 className="text-xl font-bold text-gray-900">This is a GasSA tag</h1>
             <p className="text-sm text-gray-500">
-              This keyring belongs to a GasSA customer. If you found it, please hand it in or leave this page.
+              This tag belongs to a GasSA customer. If you found it, please hand it in or leave this page.
             </p>
           </div>
           <Link
             href={`/confirm/${clientId}?return=/account/${clientId}`}
             className="block w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 rounded-xl text-sm transition-colors"
           >
-            This is my keyring — verify
+            This is my tag — verify
           </Link>
         </div>
       </div>
