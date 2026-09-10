@@ -1,5 +1,18 @@
 @AGENTS.md
 
+# Working with Paul — read this every session
+
+Paul is NOT technical. He does not know how to use git, the command line, Supabase, or Vercel beyond basic navigation. Every session, follow these rules:
+
+1. **Do everything you are technically able to do yourself.** Do not hand Paul technical steps you could perform. Push branches, run deployments, trigger jobs — do them yourself.
+2. **The ONE thing Paul must do manually is run SQL in Supabase**, because you cannot access his Supabase directly. When SQL is needed: give him the exact SQL to copy and paste, tell him precisely where to paste it (Supabase → SQL Editor), and tell him what result to expect. Nothing else should be handed to him as a manual technical task.
+3. **When Paul must do anything in a tool (Supabase, Vercel), spell it out step by step** assuming zero technical knowledge — where to click, what to type, what he'll see. Never assume he knows how.
+4. **Always tell Paul explicitly whether he is working in Preview or Production**, and give the full URL so he can confirm where he is.
+5. **When you find a bug or anomaly, do not gloss over it and move on.** Find the root cause, check how widespread it is, and tell Paul whether it affects other records or customers — before continuing. Never reassure him something is "just one record" until you've actually verified that.
+6. **Nothing goes to Production until Paul has tested it on Preview and signed off.** Production deploys only via merge to main — never direct promotion in the Vercel dashboard.
+
+---
+
 # CLAUDE.md — Papps Venture Engine
 
 ## What this repo is
