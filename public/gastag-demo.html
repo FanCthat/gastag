@@ -472,6 +472,16 @@ body {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
+  function showSendError(btnEl, originalText) {
+    btnEl.disabled = false;
+    btnEl.textContent = "Something went wrong — try again";
+    btnEl.style.background = "var(--red)";
+    setTimeout(function () {
+      btnEl.textContent = originalText;
+      btnEl.style.background = "";
+    }, 3000);
+  }
+
   function startDemo() {
     var input = document.getElementById("email-input");
     var errorEl = document.getElementById("email-error");
@@ -497,18 +507,18 @@ body {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email: _email, step: 1 }),
     })
-    .then(function () { goTo("s2"); })
-    .catch(function () { goTo("s2"); })
-    .finally(function () {
-      btn.disabled = false;
-      btn.textContent = "Send me the first reminder →";
-    });
+    .then(function (res) {
+      if (!res.ok) { showSendError(btn, "Send me the first reminder →"); return; }
+      goTo("s2");
+    })
+    .catch(function () { showSendError(btn, "Send me the first reminder →"); });
   }
 
   function sendAndAdvance(step, nextScreen, btnId) {
     if (!_email) { goTo(nextScreen); return; }
 
     var btn = document.getElementById(btnId);
+    var originalText = step === 2 ? "Send me the 3-week reminder →" : "Send me the final reminder →";
     btn.disabled = true;
     btn.textContent = "Sending…";
 
@@ -517,12 +527,11 @@ body {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email: _email, step: step }),
     })
-    .then(function () { goTo(nextScreen); })
-    .catch(function () { goTo(nextScreen); })
-    .finally(function () {
-      btn.disabled = false;
-      btn.textContent = step === 2 ? "Send me the 3-week reminder →" : "Send me the final reminder →";
-    });
+    .then(function (res) {
+      if (!res.ok) { showSendError(btn, originalText); return; }
+      goTo(nextScreen);
+    })
+    .catch(function () { showSendError(btn, originalText); });
   }
 
   document.getElementById("email-input").addEventListener("keydown", function (e) {
