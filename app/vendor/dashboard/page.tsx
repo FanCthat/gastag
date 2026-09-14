@@ -8,7 +8,6 @@ import PendingOrders from "./_components/pending-orders";
 import ClientList from "./_components/client-list";
 import BroadcastForm from "./_components/broadcast-form";
 import RemovalRequestsBanner from "./_components/removal-requests-banner";
-import Link from "next/link";
 
 export default async function VendorDashboard({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
   const session = await getServerSession(authOptions);
@@ -111,12 +110,6 @@ export default async function VendorDashboard({ searchParams }: { searchParams: 
             <p className="text-xs text-gray-400">GasTag Supplier Portal</p>
           </div>
           <div className="flex flex-wrap items-center gap-2 justify-end shrink-0">
-            <Link
-              href="/vendor/dashboard/pre-register"
-              className="text-xs font-medium bg-orange-500 hover:bg-orange-600 text-white px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap"
-            >
-              + Pre-register
-            </Link>
             <VendorNav activeTab={tab} pendingCount={pendingOrders.length} />
           </div>
         </div>
