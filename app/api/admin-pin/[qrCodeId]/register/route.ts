@@ -29,9 +29,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ qrC
     lastPurchaseDate,
     previousPurchaseDate,
     estimateMonths,
+    sourceTag,
   } = await req.json();
 
-  if (!name || !phone || !deliveryAddress || !applianceType || !cylinderSizeKg) {
+  if (!name || !phone || !deliveryAddress) {
     return NextResponse.json({ error: "Missing required fields." }, { status: 400 });
   }
 
@@ -55,28 +56,33 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ qrC
     : null;
 
   const now = new Date();
-  const lastDate = lastPurchaseDate ? new Date(lastPurchaseDate) : now;
-  let predictedEmptyDate: Date;
-  let baselineUsed: string;
-
-  if (predictionBasis === "measured" && previousPurchaseDate) {
-    const prevDate = new Date(previousPurchaseDate);
-    const intervalMonths = calcActualDurationMonths(prevDate, lastDate);
-    predictedEmptyDate = addMonths(lastDate, intervalMonths);
-    baselineUsed = "measured_interval";
-  } else if (predictionBasis === "estimate" && estimateMonths) {
-    predictedEmptyDate = addMonths(lastDate, Number(estimateMonths));
-    baselineUsed = "supplier_estimate";
-  } else {
-    const avg = await getIndustryAverage(Number(cylinderSizeKg));
-    predictedEmptyDate = addMonths(lastDate, avg);
-    baselineUsed = "industry_average";
-  }
-
   const normalEmail = email?.trim().toLowerCase() || null;
   const normalPhone = phone.trim();
   const normalName = name.trim();
   const normalAddress = deliveryAddress.trim();
+  const normalSourceTag = sourceTag?.trim() || null;
+
+  const hasAppliance = !!(applianceType && cylinderSizeKg);
+
+  let predictedEmptyDate: Date = now;
+  let baselineUsed: string = "industry_average";
+
+  if (hasAppliance) {
+    const lastDate = lastPurchaseDate ? new Date(lastPurchaseDate) : now;
+    if (predictionBasis === "measured" && previousPurchaseDate) {
+      const prevDate = new Date(previousPurchaseDate);
+      const intervalMonths = calcActualDurationMonths(prevDate, lastDate);
+      predictedEmptyDate = addMonths(lastDate, intervalMonths);
+      baselineUsed = "measured_interval";
+    } else if (predictionBasis === "estimate" && estimateMonths) {
+      predictedEmptyDate = addMonths(lastDate, Number(estimateMonths));
+      baselineUsed = "supplier_estimate";
+    } else {
+      const avg = await getIndustryAverage(Number(cylinderSizeKg));
+      predictedEmptyDate = addMonths(lastDate, avg);
+      baselineUsed = "industry_average";
+    }
+  }
 
   const { client, appliance, cycle } = await prisma.$transaction(async tx => {
     const c = await tx.client.create({
@@ -94,8 +100,19 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ qrC
         deliveryAddress:    dataKey ? null : normalAddress,
         deliveryAddressEnc: dataKey ? encryptField(normalAddress, dataKey) : null,
         notificationPreference: normalEmail ? "email" : "push",
+        sourceTag: normalSourceTag,
+        // Suppress the incomplete-registration alert for intentionally cylinder-less event clients
+        incompleteAlertSentAt: hasAppliance ? null : new Date(),
       },
     });
+
+    if (!hasAppliance) {
+      await tx.qRCode.update({
+        where: { id: qrCodeId },
+        data: { state: "pre_registered", registeredAt: now },
+      });
+      return { client: c, appliance: null, cycle: null };
+    }
 
     const a = await tx.appliance.create({
       data: {
@@ -118,11 +135,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ qrC
     return { client: c, appliance: a, cycle: cy };
   });
 
-  await scheduleNotificationsForCycle(
-    client.id, appliance.id, cycle.id, predictedEmptyDate,
-    client.notificationPreference,
-    { isTrial: vendor.isTrial, trialStartedAt: vendor.trialStartedAt },
-  );
+  if (hasAppliance && appliance && cycle) {
+    await scheduleNotificationsForCycle(
+      client.id, appliance.id, cycle.id, predictedEmptyDate,
+      client.notificationPreference,
+      { isTrial: vendor.isTrial, trialStartedAt: vendor.trialStartedAt },
+    );
+  }
 
   return NextResponse.json({ clientId: client.id }, { status: 201 });
 }

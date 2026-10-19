@@ -29,7 +29,11 @@ export default function AdminPinSection({ qrCodeId }: { qrCodeId: string }) {
         setPin("");
         return;
       }
-      router.push(`/scan/${qrCodeId}/pre-register`);
+      const eventParam = new URLSearchParams(window.location.search).get("event");
+      const dest = eventParam
+        ? `/scan/${qrCodeId}/pre-register?event=${encodeURIComponent(eventParam)}`
+        : `/scan/${qrCodeId}/pre-register`;
+      router.push(dest);
     } catch {
       setError("Network error. Please try again.");
     } finally {

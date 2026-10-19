@@ -5,8 +5,15 @@ import { prisma } from "@/lib/db";
 import { verifyAdminCookie } from "@/lib/admin-pins";
 import ScanPreRegisterForm from "./_form";
 
-export default async function ScanPreRegisterPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function ScanPreRegisterPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ event?: string }>;
+}) {
   const { id } = await params;
+  const { event } = await searchParams;
 
   const cookieStore = await cookies();
   const cookie = cookieStore.get(`gastag_admin_${id}`)?.value ?? null;
@@ -45,7 +52,7 @@ export default async function ScanPreRegisterPage({ params }: { params: Promise<
         </div>
       </header>
       <div className="px-4 pb-12">
-        <ScanPreRegisterForm qrCodeId={id} />
+        <ScanPreRegisterForm qrCodeId={id} initialEvent={event} />
       </div>
     </div>
   );

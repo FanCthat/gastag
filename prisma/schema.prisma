@@ -80,6 +80,7 @@ model Client {
   incompleteAlertSentAt  DateTime?
   phoneVerifyAttempts    Int       @default(0)
   phoneVerifyLockedUntil DateTime?
+  sourceTag              String?   // event/campaign tag set at pre-registration (e.g. "dainfern_oct31")
   createdAt              DateTime  @default(now())
   updatedAt              DateTime  @updatedAt
   qrCode                 QRCode   @relation(fields: [qrCodeId], references: [id])

@@ -8,6 +8,7 @@ import PendingOrders from "./_components/pending-orders";
 import ClientList from "./_components/client-list";
 import BroadcastForm from "./_components/broadcast-form";
 import RemovalRequestsBanner from "./_components/removal-requests-banner";
+import EventClients from "./_components/event-clients";
 
 export default async function VendorDashboard({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
   const session = await getServerSession(authOptions);
@@ -16,7 +17,7 @@ export default async function VendorDashboard({ searchParams }: { searchParams: 
   const vendorId = (session.user as any).id as string;
   const { tab = "orders" } = await searchParams;
 
-  const [vendor, pendingOrders, clients, removalRequests] = await Promise.all([
+  const [vendor, pendingOrders, clients, removalRequests, eventClients] = await Promise.all([
     prisma.vendor.findUnique({ where: { id: vendorId }, select: { name: true, logoUrl: true, isDemo: true, encryptionOn: true, wrappedDataKey: true } }),
     prisma.order.findMany({
       where: { vendorId, status: "pending" },
@@ -54,6 +55,19 @@ export default async function VendorDashboard({ searchParams }: { searchParams: 
         removalRequestedAt: true,
       },
       orderBy: { removalRequestedAt: "asc" },
+    }),
+    prisma.client.findMany({
+      where: { vendorId, suppressedAt: null, sourceTag: { not: null } },
+      select: {
+        id: true,
+        name: true, nameEnc: true,
+        phone: true, phoneEnc: true,
+        deliveryAddress: true, deliveryAddressEnc: true,
+        sourceTag: true,
+        createdAt: true,
+        appliances: { where: { isActive: true }, select: { id: true }, take: 1 },
+      },
+      orderBy: { createdAt: "asc" },
     }),
   ]);
 
@@ -101,6 +115,25 @@ export default async function VendorDashboard({ searchParams }: { searchParams: 
     requestedAt: c.removalRequestedAt!.toISOString(),
   }));
 
+  // Group event clients by sourceTag for the Events tab
+  const eventGroupMap = new Map<string, typeof eventClients>();
+  for (const c of eventClients) {
+    const tag = c.sourceTag!;
+    if (!eventGroupMap.has(tag)) eventGroupMap.set(tag, []);
+    eventGroupMap.get(tag)!.push(c);
+  }
+  const resolvedEventGroups = Array.from(eventGroupMap.entries()).map(([tag, cs]) => ({
+    tag,
+    clients: cs.map(c => ({
+      id: c.id,
+      name: resolveField(c.nameEnc, c.name, dataKey),
+      phone: c.phoneEnc ? resolveField(c.phoneEnc, c.phone, dataKey) : (c.phone ?? null),
+      deliveryAddress: resolveField(c.deliveryAddressEnc, c.deliveryAddress, dataKey),
+      createdAt: c.createdAt,
+      hasCylinder: c.appliances.length > 0,
+    })),
+  }));
+
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-200 px-4 md:px-6 py-3 md:py-4">
@@ -124,6 +157,12 @@ export default async function VendorDashboard({ searchParams }: { searchParams: 
         )}
         {tab === "orders" && <PendingOrders orders={resolvedOrders} vendorId={vendorId} />}
         {tab === "clients" && <ClientList clients={resolvedClients} encryptionOn={vendor?.encryptionOn ?? false} />}
+        {tab === "events" && (
+          <EventClients
+            groups={resolvedEventGroups}
+            appBaseUrl={process.env.APP_BASE_URL ?? ""}
+          />
+        )}
         {tab === "specials" && (
           <BroadcastForm
             clients={resolvedClients.map(c => ({ id: c.id, name: c.name, email: c.email }))}
