@@ -154,12 +154,6 @@ form.addEventListener('submit', function(e){
   btn.disabled = true;
   btn.textContent = 'Entering…';
 
-  // If the endpoint hasn't been set, just show the thank-you (so the page still "works" for a demo)
-  if(ENDPOINT === "https://script.google.com/macros/s/AKfycbxkJ56DrF4nAurra7djqRXpfQaL8kCLTgROY91CK7LOU9BVu4EqCkEAR3Pv-9XVz4YA/exec"){
-    showDone();
-    return;
-  }
-
   var fd = new FormData();
   fd.append('name', data.name);
   fd.append('whatsapp', data.whatsapp);
