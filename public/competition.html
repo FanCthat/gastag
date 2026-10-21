@@ -154,7 +154,7 @@ form.addEventListener('submit', function(e){
   btn.disabled = true;
   btn.textContent = 'Entering…';
 
-  var fd = new FormData();
+  var fd = new URLSearchParams();
   fd.append('name', data.name);
   fd.append('whatsapp', data.whatsapp);
   fd.append('guess', data.guess);
