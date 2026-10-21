@@ -133,7 +133,7 @@ input:focus{border-color:var(--gold-deep);}
 // ====================================================================
 // SETUP: paste your Google Apps Script Web App URL between the quotes below.
 // (The setup guide tells you how to get this URL.)
-const ENDPOINT = "PASTE_YOUR_GOOGLE_SCRIPT_URL_HERE";
+const ENDPOINT = "https://script.google.com/macros/s/AKfycbxkJ56DrF4nAurra7djqRXpfQaL8kCLTgROY91CK7LOU9BVu4EqCkEAR3Pv-9XVz4YA/exec";
 // ====================================================================
 
 const form = document.getElementById('entryForm');
@@ -155,16 +155,21 @@ form.addEventListener('submit', function(e){
   btn.textContent = 'Entering…';
 
   // If the endpoint hasn't been set, just show the thank-you (so the page still "works" for a demo)
-  if(ENDPOINT === "PASTE_YOUR_GOOGLE_SCRIPT_URL_HERE"){
+  if(ENDPOINT === "https://script.google.com/macros/s/AKfycbxkJ56DrF4nAurra7djqRXpfQaL8kCLTgROY91CK7LOU9BVu4EqCkEAR3Pv-9XVz4YA/exec"){
     showDone();
     return;
   }
 
+  var fd = new FormData();
+  fd.append('name', data.name);
+  fd.append('whatsapp', data.whatsapp);
+  fd.append('guess', data.guess);
+  fd.append('ts', data.ts);
+
   fetch(ENDPOINT, {
     method:'POST',
     mode:'no-cors',
-    headers:{'Content-Type':'text/plain;charset=utf-8'},
-    body: JSON.stringify(data)
+    body: fd
   }).then(function(){
     showDone();
   }).catch(function(){
