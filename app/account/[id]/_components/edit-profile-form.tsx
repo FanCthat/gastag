@@ -94,7 +94,7 @@ export default function EditProfileForm({ clientId, initial }: Props) {
           <div>
             <label className="block text-xs font-semibold text-gray-500 mb-2">Reminder preference</label>
             <div className="flex gap-3">
-              {(["email", "push", "both"] as const).map(opt => (
+              {(["email"] as const).map(opt => (
                 <label key={opt} className="flex items-center gap-1.5 text-sm text-gray-700 cursor-pointer">
                   <input
                     type="radio"
@@ -104,7 +104,7 @@ export default function EditProfileForm({ clientId, initial }: Props) {
                     onChange={() => setPref(opt)}
                     className="accent-orange-500"
                   />
-                  {opt === "both" ? "Email & push" : opt.charAt(0).toUpperCase() + opt.slice(1)}
+                  {opt.charAt(0).toUpperCase() + opt.slice(1)}
                 </label>
               ))}
             </div>

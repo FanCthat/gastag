@@ -162,8 +162,6 @@ export default function RegisterForm({
           <Field label="How would you like to be reminded?">
             <select value={notifPref} onChange={e => setNotifPref(e.target.value)} className={inputCls}>
               <option value="email">Email only</option>
-              <option value="push">Push notifications only</option>
-              <option value="both">Both email and push</option>
             </select>
           </Field>
 
