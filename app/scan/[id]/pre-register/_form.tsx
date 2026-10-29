@@ -12,6 +12,7 @@ const APPLIANCE_OPTIONS = [
 
 const CYLINDER_SIZES = [3, 5, 7, 9, 14, 19, 48];
 const LS_EVENT_KEY = "gastag_event_tag";
+const LS_DEVICE_TOKEN_KEY = "gastag_admin_device_token";
 
 export default function ScanPreRegisterForm({
   qrCodeId,
@@ -20,6 +21,10 @@ export default function ScanPreRegisterForm({
   qrCodeId: string;
   initialEvent?: string;
 }) {
+  function lockDevice() {
+    localStorage.removeItem(LS_DEVICE_TOKEN_KEY);
+    window.location.href = `/scan/${qrCodeId}`;
+  }
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -115,6 +120,13 @@ export default function ScanPreRegisterForm({
             : "The profile is live. The client will add their cylinder when they scan their tag."}
         </p>
         <p className="text-xs text-gray-400">You can close this page.</p>
+        <button
+          type="button"
+          onClick={lockDevice}
+          className="text-xs text-gray-400 hover:text-gray-600 underline"
+        >
+          Lock admin on this device
+        </button>
       </div>
     );
   }
@@ -312,6 +324,16 @@ export default function ScanPreRegisterForm({
       >
         {loading ? "Saving…" : "Register client and assign tag"}
       </button>
+
+      <div className="text-center pb-4">
+        <button
+          type="button"
+          onClick={lockDevice}
+          className="text-xs text-gray-400 hover:text-gray-600 underline"
+        >
+          Lock admin on this device
+        </button>
+      </div>
     </form>
   );
 }

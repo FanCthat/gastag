@@ -70,3 +70,45 @@ export function verifyAdminCookie(
 
   return { valid: true, adminName: payload.adminName };
 }
+
+const DEVICE_TOKEN_HOURS = 12;
+
+export function signDeviceToken(adminName: string): string {
+  const secret = process.env.ADMIN_PIN_SECRET;
+  if (!secret) throw new Error("ADMIN_PIN_SECRET not set");
+  const payload = JSON.stringify({ adminName, expiresAt: Date.now() + DEVICE_TOKEN_HOURS * 60 * 60 * 1000 });
+  const b64 = Buffer.from(payload).toString("base64url");
+  const sig = createHmac("sha256", secret).update(b64).digest("hex");
+  return `${b64}.${sig}`;
+}
+
+export function verifyDeviceToken(token: string): { valid: true; adminName: string } | { valid: false } {
+  const secret = process.env.ADMIN_PIN_SECRET;
+  if (!secret) return { valid: false };
+
+  const dotIdx = token.lastIndexOf(".");
+  if (dotIdx === -1) return { valid: false };
+
+  const b64 = token.slice(0, dotIdx);
+  const sig = token.slice(dotIdx + 1);
+
+  const expectedSig = createHmac("sha256", secret).update(b64).digest("hex");
+  if (sig.length !== expectedSig.length) return { valid: false };
+  try {
+    if (!timingSafeEqual(Buffer.from(sig, "hex"), Buffer.from(expectedSig, "hex"))) return { valid: false };
+  } catch {
+    return { valid: false };
+  }
+
+  let payload: { adminName: string; expiresAt: number };
+  try {
+    payload = JSON.parse(Buffer.from(b64, "base64url").toString());
+  } catch {
+    return { valid: false };
+  }
+
+  if (!payload.adminName || typeof payload.expiresAt !== "number") return { valid: false };
+  if (Date.now() > payload.expiresAt) return { valid: false };
+
+  return { valid: true, adminName: payload.adminName };
+}

@@ -1,14 +1,47 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+
+const LS_DEVICE_TOKEN_KEY = "gastag_admin_device_token";
 
 export default function AdminPinSection({ qrCodeId }: { qrCodeId: string }) {
   const router = useRouter();
+  const [checking, setChecking] = useState(true);
   const [open, setOpen] = useState(false);
   const [pin, setPin] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  function getDestination() {
+    const eventParam = new URLSearchParams(window.location.search).get("event");
+    return eventParam
+      ? `/scan/${qrCodeId}/pre-register?event=${encodeURIComponent(eventParam)}`
+      : `/scan/${qrCodeId}/pre-register`;
+  }
+
+  useEffect(() => {
+    const token = localStorage.getItem(LS_DEVICE_TOKEN_KEY);
+    if (!token) {
+      setChecking(false);
+      return;
+    }
+    fetch(`/api/admin-pin/${qrCodeId}/verify`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ deviceToken: token }),
+    }).then(res => {
+      if (res.ok) {
+        router.push(getDestination());
+      } else {
+        localStorage.removeItem(LS_DEVICE_TOKEN_KEY);
+        setChecking(false);
+      }
+    }).catch(() => {
+      setChecking(false);
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [qrCodeId]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -29,17 +62,19 @@ export default function AdminPinSection({ qrCodeId }: { qrCodeId: string }) {
         setPin("");
         return;
       }
-      const eventParam = new URLSearchParams(window.location.search).get("event");
-      const dest = eventParam
-        ? `/scan/${qrCodeId}/pre-register?event=${encodeURIComponent(eventParam)}`
-        : `/scan/${qrCodeId}/pre-register`;
-      router.push(dest);
+      const data = await res.json();
+      if (data.deviceToken) {
+        localStorage.setItem(LS_DEVICE_TOKEN_KEY, data.deviceToken);
+      }
+      router.push(getDestination());
     } catch {
       setError("Network error. Please try again.");
     } finally {
       setLoading(false);
     }
   }
+
+  if (checking) return null;
 
   if (!open) {
     return (
